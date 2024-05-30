@@ -1,0 +1,1 @@
+<button onclick='return filter_part_dipilih(<?= $data ?>)' class="btn btn-flat btn-success btn-xs" data-dismiss='modal'><i class="fa fa-check"></i></button>

@@ -1,0 +1,1 @@
+<a onclick='return open_rincian_po_monitoring_supply("<?= $po_id ?>")'><?= $tanggal_po ?></a>

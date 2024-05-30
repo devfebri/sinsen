@@ -1,0 +1,2 @@
+<a href="h3/h3_md_do_revisi/detail?id=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View DO Awal</a>
+<a style='margin-top: 10px;' href="h3/h3_md_do_revisi/view_check?id=<?= $id ?>" class="btn btn-xs btn-flat btn-primary">View Check</a>

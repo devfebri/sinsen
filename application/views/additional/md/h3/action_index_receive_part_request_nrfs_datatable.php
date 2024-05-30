@@ -1,0 +1,1 @@
+<a href="h3/h3_md_receive_part_request_nrfs/detail?request_id=<?= $request_id ?>" class="btn btn-xs btn-flat btn-info">View</a>

@@ -1,0 +1,1 @@
+<button onClick='return pilihRequestDocument(<?= $data ?>)' data-dismiss='modal' class="btn btn-xs btn-flat btn-success" type="button"><i class="fa fa-check"></button>

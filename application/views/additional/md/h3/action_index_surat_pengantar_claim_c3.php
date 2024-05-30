@@ -1,0 +1,1 @@
+<a href="h3/h3_md_surat_pengantar_claim_c3/detail?id_surat_pengantar=<?= $id_surat_pengantar ?>" class="btn btn-xs btn-flat btn-info">View</a>

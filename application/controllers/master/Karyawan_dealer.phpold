@@ -1,0 +1,322 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Karyawan_dealer extends CI_Controller {
+
+    var $tables =   "ms_karyawan_dealer";	
+		var $folder =   "master";
+		var $page		=		"karyawan_dealer";
+    var $pk     =   "id_karyawan_dealer";
+    var $title  =   "Master Data Karyawan Dealer";
+
+	public function __construct()
+	{		
+		parent::__construct();
+		
+		//===== Load Database =====
+		$this->load->database();
+		$this->load->helper('url');
+		//===== Load Model =====
+		$this->load->model('m_admin');		
+		//===== Load Library =====
+		$this->load->library('upload');
+		
+		$name = $this->session->userdata('nama');
+		$auth = $this->m_admin->user_auth($this->page,"select");		
+		$sess = $this->m_admin->sess_auth();						
+		if($name=="" OR $auth=='false')
+		{
+			echo "<meta http-equiv='refresh' content='0; url=".base_url()."denied'>";
+		}elseif($sess=='false'){
+			echo "<meta http-equiv='refresh' content='0; url=".base_url()."crash'>";
+		}
+
+	}
+	protected function template($data)
+	{
+		$name = $this->session->userdata('nama');
+		if($name=="")
+		{
+			echo "<meta http-equiv='refresh' content='0; url=".base_url()."panel'>";
+		}else{						
+			$data['id_menu'] = $this->m_admin->getMenu($this->page);
+			$data['group'] 	= $this->session->userdata("group");
+			$this->load->view('template/header',$data);
+			$this->load->view('template/aside');			
+			$this->load->view($this->folder."/".$this->page);		
+			$this->load->view('template/footer');
+		}
+	}
+
+	public function index()
+	{				
+		$data['isi']    = $this->page;		
+		$data['title']	= $this->title;															
+		$data['set']		= "view";
+		$data['dt_karyawan_dealer'] = $this->db->query("SELECT ms_karyawan_dealer.*,ms_dealer.nama_dealer,ms_divisi.divisi,ms_jabatan.jabatan,ms_agama.agama
+																FROM ms_karyawan_dealer LEFT JOIN ms_dealer 
+																ON ms_karyawan_dealer.id_dealer=ms_dealer.id_dealer LEFT JOIN ms_divisi 
+																ON ms_karyawan_dealer.id_divisi=ms_divisi.id_divisi LEFT JOIN ms_jabatan
+																ON ms_karyawan_dealer.id_jabatan=ms_jabatan.id_jabatan LEFT JOIN ms_agama
+																ON ms_karyawan_dealer.id_agama=ms_agama.id_agama ORDER BY id_karyawan_dealer,nama_lengkap ASC");							
+		$this->template($data);	
+	}
+	public function add()
+	{				
+		$data['isi']    = $this->page;		
+		$data['title']	= $this->title;				
+		$data['dt_divisi'] = $this->m_admin->getSortCond("ms_divisi","id_divisi","ASC");	
+		$data['dt_jabatan'] = $this->m_admin->getSortCond("ms_jabatan","id_jabatan","ASC");	
+		$data['dt_agama'] = $this->m_admin->getSortCond("ms_agama","id_agama","ASC");			
+		$data['dt_dealer'] = $this->m_admin->getSortCond("ms_dealer","nama_dealer","ASC");			
+		$data['dt_pos'] = $this->m_admin->getSortCond("ms_pos_dealer","nama_pos","ASC");			
+		$data['set']		= "insert";									
+		$this->template($data);	
+	}
+	public function get_karyawan_dealer_group(){
+		$id_karyawan_dealer_group		= $this->input->post('id_karyawan_dealer_group');	
+		$dt_karyawan_dealer_level		= $this->m_admin->getByID("ms_karyawan_dealer_level","id_karyawan_dealer_group",$id_karyawan_dealer_group);								
+		$data .= "<option value=''>- choose -</option>";
+		foreach ($dt_karyawan_dealer_level->result() as $row) {
+			$data .= "<option value='$row->id_karyawan_dealer_level'>$row->karyawan_dealer_level</option>\n";
+		}
+		echo $data;
+	}
+	public function cari_dealer(){
+		$id_dealer		= $this->input->post('id_dealer');	
+		$dt_pos				= $this->m_admin->getByID("ms_pos_dealer","id_dealer",$id_dealer);								
+		$data .= "<option value=''>- choose -</option>";
+		foreach ($dt_pos->result() as $row) {
+			$data .= "<option value='$row->id_pos_dealer'>$row->nama_pos</option>\n";
+		}
+		echo $data;
+	}
+	public function t_kerja(){
+		$id = $this->input->post('id_karyawan_dealer');
+		$dq = "SELECT ms_karyawan_dealer_kerja.*,ms_dealer.nama_dealer FROM ms_karyawan_dealer_kerja INNER JOIN ms_dealer ON ms_karyawan_dealer_kerja.id_dealer=ms_dealer.id_dealer
+						WHERE ms_karyawan_dealer_kerja.id_karyawan_dealer = '$id'";
+		$data['dt_kerja'] = $this->db->query($dq);
+		$this->load->view('master/t_kerja',$data);
+	}
+	public function delete_kerja(){
+		$id 		= $this->input->post('id_karyawan_dealer_kerja');		
+		$da 		= "DELETE FROM ms_karyawan_dealer_kerja WHERE id_karyawan_dealer_kerja = '$id'";
+		$this->db->query($da);			
+		echo "nihil";
+	}
+	public function save_kerja(){
+		$id_karyawan_dealer	= $this->input->post('id_karyawan_dealer');
+		$id_dealer					= $this->input->post('id_dealer');		
+		$c 			= $this->db->query("SELECT * FROM ms_karyawan_dealer_kerja WHERE id_karyawan_dealer ='$id_karyawan_dealer' AND id_dealer = '$id_dealer'");
+		if($c->num_rows()==0){
+			$data['id_karyawan_dealer']		= $this->input->post('id_karyawan_dealer');			
+			$data['id_dealer']			= $this->input->post('id_dealer');
+			$data['tgl_masuk']			= $this->input->post('tgl_masuk');
+			$data['tgl_keluar']		= $this->input->post('tgl_keluar');			
+			$this->m_admin->insert('ms_karyawan_dealer_kerja',$data);							
+			echo "nihil";
+		}else{
+			echo "nothing";
+		}
+	}
+
+	public function t_training(){
+		$id = $this->input->post('id_karyawan_dealer');
+		$dq = "SELECT * FROM ms_karyawan_dealer_training WHERE ms_karyawan_dealer_training.id_karyawan_dealer = '$id'";
+		$data['dt_training'] = $this->db->query($dq);
+		$this->load->view('master/t_training',$data);
+	}
+	public function delete_training(){
+		$id 		= $this->input->post('id_karyawan_dealer_training');		
+		$da 		= "DELETE FROM ms_karyawan_dealer_training WHERE id_karyawan_dealer_training = '$id'";
+		$this->db->query($da);			
+		echo "nihil";
+	}
+	public function save_training(){
+		$id_karyawan_dealer	= $this->input->post('id_karyawan_dealer');
+		$training					= $this->input->post('training');		
+		$c 			= $this->db->query("SELECT * FROM ms_karyawan_dealer_training WHERE id_karyawan_dealer ='$id_karyawan_dealer' AND training = '$training'");
+		if($c->num_rows()==0){
+			$data['id_karyawan_dealer']		= $this->input->post('id_karyawan_dealer');			
+			$data['training']			= $this->input->post('training');
+			$data['tgl_mulai']			= $this->input->post('tgl_mulai');
+			$data['tgl_selesai']		= $this->input->post('tgl_selesai');			
+			$this->m_admin->insert('ms_karyawan_dealer_training',$data);							
+			echo "nihil";
+		}else{
+			echo "nothing";
+		}
+	}
+
+	public function save()
+	{		
+		$tabel						= $this->tables;
+		$waktu 						= gmdate("y-m-d h:i:s", time()+60*60*7);
+		$login_id					= $this->session->userdata('id_user');		
+
+		$pk					= $this->pk;
+		$id  				= $this->input->post($pk);
+		$cek 				= $this->m_admin->getByID($tabel,$pk,$id)->num_rows();
+		if($cek == 0){
+			$data['id_karyawan_dealer']		= $this->input->post('id_karyawan_dealer');		
+			$data['nik'] 						= $this->input->post('nik');		
+			$data['id_flp_md']			= $this->input->post('id_flp_md');		
+			$data['nama_lengkap']		= $this->input->post('nama_lengkap');		
+			$data['id_dealer'] 			= $this->input->post('id_dealer');		
+			$data['id_pos_dealer'] 	= $this->input->post('id_pos_dealer');		
+			$data['id_divisi'] 			= $this->input->post('id_divisi');		
+			$data['id_jabatan'] 		= $this->input->post('id_jabatan');				
+			$data['tempat_lahir'] 	= $this->input->post('tempat_lahir');				
+			$data['tgl_lahir'] 			= $this->input->post('tgl_lahir');				
+			$data['alamat']					= $this->input->post('alamat');				
+			$data['id_agama']				= $this->input->post('id_agama');				
+			$data['jk']							= $this->input->post('jk');
+			$data['no_telp']				= $this->input->post('no_telp');				
+			$data['no_hp']					= $this->input->post('no_hp');				
+			$data['email']					= $this->input->post('email');				
+			$data['tgl_masuk']			= $this->input->post('tgl_masuk');				
+			$data['tgl_keluar']			= $this->input->post('tgl_keluar');				
+			$data['alasan_keluar']	= $this->input->post('alasan_keluar');				
+			if($this->input->post('active') == '1'){
+				$data['active']				= $this->input->post('active');		
+			}else{
+				$data['active'] 			= "";
+			}
+			$data['created_at']			= $waktu;
+			$data['created_by']			= $login_id;				
+			$this->m_admin->insert($tabel,$data);
+			$_SESSION['pesan'] 	= "Data has been saved successfully";
+			$_SESSION['tipe'] 	= "success";
+			echo "<meta http-equiv='refresh' content='0; url=".base_url()."master/karyawan_dealer/add'>";
+		}else{
+			$_SESSION['pesan'] 	= "Duplicate entry for primary key";
+			$_SESSION['tipe'] 	= "danger";
+			echo "<script>history.go(-1)</script>";
+		}
+	}
+	public function delete()
+	{		
+		$tabel			= $this->tables;
+		$pk 				= $this->pk;
+		$id 				= $this->input->get('id');		
+		$cek_approval  = $this->m_admin->cek_approval($tabel,$pk,$id);		
+		if($cek_approval == 'salah'){
+			$_SESSION['pesan']  = 'Gagal! Anda tidak punya akses.';										
+			$_SESSION['tipe'] 	= "danger";			
+			echo "<script>history.go(-1)</script>";
+		}else{
+			$this->db->trans_begin();			
+			$this->db->delete($tabel,array($pk=>$id));
+			$this->db->trans_commit();			
+			$result = 'Success';									
+
+			if($this->db->trans_status() === FALSE){
+				$result = 'You can not delete this data because it already used by the other tables';										
+				$_SESSION['tipe'] 	= "danger";			
+			}else{
+				$this->m_admin->delete("ms_karyawan_dealer_kerja",$pk,$id);
+				$this->m_admin->delete("ms_karyawan_dealer_training",$pk,$id);
+				$this->m_admin->delete("ms_user",$pk,$id);
+				$result = 'Data has been deleted succesfully';										
+				$_SESSION['tipe'] 	= "success";			
+			}
+			$_SESSION['pesan'] 	= $result;
+			echo "<meta http-equiv='refresh' content='0; url=".base_url()."master/karyawan_dealer'>";
+		}
+	}
+	public function ajax_bulk_delete()
+	{
+		$tabel			= $this->tables;
+		$pk 			= $this->pk;
+		$list_id 		= $this->input->post('id');
+		foreach ($list_id as $id) {
+			$this->m_admin->delete($tabel,$pk,$id);
+		}
+		echo json_encode(array("status" => TRUE));
+	}
+	public function edit()
+	{		
+		$tabel			= $this->tables;
+		$pk 				= $this->pk;		
+		$id 				= $this->input->get('id');
+		$d 					= array($pk=>$id);		
+		$data['dt_karyawan_dealer'] = $this->m_admin->kondisi($tabel,$d);
+		$data['dt_divisi'] = $this->m_admin->getSortCond("ms_divisi","id_divisi","ASC");	
+		$data['dt_jabatan'] = $this->m_admin->getSortCond("ms_jabatan","id_jabatan","ASC");	
+		$data['dt_agama'] = $this->m_admin->getSortCond("ms_agama","id_agama","ASC");			
+		$data['dt_dealer'] = $this->m_admin->getSortCond("ms_dealer","nama_dealer","ASC");
+		$data['dt_pos'] = $this->m_admin->getSortCond("ms_pos_dealer","nama_pos","ASC");			
+		$data['isi']    	= $this->page;		
+		$data['title']		= $this->title;		
+		$data['set']			= "edit";									
+		$this->template($data);	
+	}
+	public function update()
+	{		
+		$tabel				= $this->tables;
+		$pk 					= $this->pk;
+		$id 					= $this->input->post('id');
+		$waktu 				= gmdate("y-m-d h:i:s", time()+60*60*7);
+		$login_id			= $this->session->userdata('id_user');		
+
+		$id					= $this->input->post("id");
+		$id_				= $this->input->post($pk);
+		$cek 				= $this->m_admin->getByID($tabel,$pk,$id_)->num_rows();
+		if($cek == 0 or $id == $id_){
+
+			$data['nik'] 						= $this->input->post('nik');		
+			$data['id_flp_md']			= $this->input->post('id_flp_md');		
+			$data['nama_lengkap']		= $this->input->post('nama_lengkap');		
+			$data['id_dealer'] 			= $this->input->post('id_dealer');		
+			$data['id_divisi'] 			= $this->input->post('id_divisi');		
+			$data['id_jabatan'] 		= $this->input->post('id_jabatan');				
+			$data['id_pos_dealer'] 	= $this->input->post('id_pos_dealer');		
+			$data['tempat_lahir'] 	= $this->input->post('tempat_lahir');				
+			$data['tgl_lahir'] 			= $this->input->post('tgl_lahir');				
+			$data['alamat']					= $this->input->post('alamat');				
+			$data['id_agama']				= $this->input->post('id_agama');				
+			$data['jk']							= $this->input->post('jk');
+			$data['no_telp']				= $this->input->post('no_telp');				
+			$data['no_hp']					= $this->input->post('no_hp');				
+			$data['email']					= $this->input->post('email');				
+			$data['tgl_masuk']			= $this->input->post('tgl_masuk');				
+			$data['tgl_keluar']			= $this->input->post('tgl_keluar');				
+			$data['alasan_keluar']	= $this->input->post('alasan_keluar');
+			$data['updated_at']			= $waktu;
+			$data['updated_by']			= $login_id;
+
+			if($this->input->post('active') == '1'){
+				$data['active']	= $this->input->post('active');		
+			}else{
+				$data['active'] 			= "";
+			}
+
+			$this->m_admin->update($tabel,$data,$pk,$id);
+			$_SESSION['pesan'] 	= "Data has been updated successfully";
+			$_SESSION['tipe'] 	= "success";
+			echo "<meta http-equiv='refresh' content='0; url=".base_url()."master/karyawan_dealer'>";
+		}else{
+			$_SESSION['pesan'] 	= "Duplicate entry for primary key";
+			$_SESSION['tipe'] 	= "danger";
+			echo "<script>history.go(-1)</script>";
+		}
+	}
+	public function view()
+	{		
+		$tabel			= $this->tables;
+		$pk 				= $this->pk;
+		$page				= $this->page;
+		$id 				= $this->input->get('id');
+		$d 					= array($pk=>$id);			
+		$data['dt_divisi'] = $this->m_admin->getSortCond("ms_divisi","id_divisi","ASC");	
+		$data['dt_jabatan'] = $this->m_admin->getSortCond("ms_jabatan","id_jabatan","ASC");	
+		$data['dt_agama'] = $this->m_admin->getSortCond("ms_agama","id_agama","ASC");			
+		$data['dt_dealer'] = $this->m_admin->getSortCond("ms_dealer","nama_dealer","ASC");
+		$data['dt_karyawan_dealer'] = $this->m_admin->getByID($tabel,$pk,$id);
+		$data['isi']    = $this->page;		
+		$data['title']	= $this->title;
+		$data['set']		= "detail";									
+		$this->template($data);
+		
+	}
+}

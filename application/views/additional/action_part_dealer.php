@@ -1,0 +1,1 @@
+<a href="dealer/h3_dealer_master_part/detail?id_part=<?= $id_part ?>" class="btn btn-flat btn-xs btn-info">View</a>

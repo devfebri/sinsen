@@ -1,0 +1,1085 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+
+
+class Dashboard extends CI_Controller {
+	public function __construct()
+	{		
+		parent::__construct();		
+		//===== Load Database =====
+		$this->load->database();
+		$this->load->helper('url','string');    
+		
+		//===== Load Model =====
+		$this->load->model('m_admin');	
+		$this->load->helper('tgl_indo');
+	}
+	// public function ajax(){
+	// 	/* Database connection start */
+		
+	// 	// $servername = "localhost";
+	// 	// $username = "root";
+	// 	// $password = "";
+	// 	// $dbname = "dbs_honda_fix";
+
+	// 	// $servername = 'localhost';
+	// 	// $username = 'newmonju_puad';
+	// 	// $password = 'Roti@2017';
+	// 	// $dbname = 'newmonju_honda_coba';
+
+	// 	$servername = 'localhost';
+	// 	$username = 'sinarsen_root';
+	// 	$password = 'success2019**';
+	// 	$dbname = 'sinarsen_honda';
+
+
+	// 	$conn = mysqli_connect($servername, $username, $password, $dbname) or die("Connection failed: " . mysqli_connect_error());
+
+	// 	/* Database connection end */
+
+
+	// 	// storing  request (ie, get/post) global array to a variable  
+	// 	$requestData= $_REQUEST;
+
+
+	// 	$columns = array( 
+	// 			// datatable column index  => database column name
+	// 				0 =>'id_tipe_kendaraan', 
+	// 				1 => 'tipe_ahm'
+	// 			);
+
+	// 			// getting total number records without any search
+	// 			$sql = "SELECT ms_tipe_kendaraan.id_tipe_kendaraan,ms_tipe_kendaraan.tipe_ahm,(SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan AND status = '1' AND tipe='RFS') AS ready";
+	// 			$sql.=" FROM ms_tipe_kendaraan";								
+	// 			$sql.=" WHERE 1=1";
+	// 			$sql.=" GROUP BY ms_tipe_kendaraan.id_tipe_kendaraan";				
+	// 			$sql.=" HAVING ready > 0";
+	// 			$query=mysqli_query($conn, $sql);
+	// 			$totalData = mysqli_num_rows($query);
+	// 			$totalFiltered = $totalData;  // when there is no search parameter then total number rows = total number filtered rows.
+
+	// 			$sql = "SELECT ms_tipe_kendaraan.id_tipe_kendaraan,ms_tipe_kendaraan.tipe_ahm,(SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan AND status = '1' AND tipe='RFS') AS ready";
+	// 			$sql.=" FROM ms_tipe_kendaraan";								
+	// 			$sql.=" WHERE 1=1";
+	// 			if( !empty($requestData['search']['value']) ) {   // if there is a search parameter, $requestData['search']['value'] contains search parameter
+	// 				$sql.=" AND (ms_tipe_kendaraan.id_tipe_kendaraan LIKE '".$requestData['search']['value']."%' ";    					
+	// 				$sql.=" OR ms_tipe_kendaraan.tipe_ahm LIKE '".$requestData['search']['value']."%' )";
+	// 			}
+	// 			$sql.=" GROUP BY ms_tipe_kendaraan.id_tipe_kendaraan";				
+	// 			$sql.=" HAVING ready > 0";
+	// 			$query=mysqli_query($conn, $sql);
+	// 			$totalFiltered = mysqli_num_rows($query); // when there is a search parameter then we have to modify total number filtered rows as per search result. 
+	// 			$sql.=" ORDER BY ". $columns[$requestData['order'][0]['column']]."   ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+	// 			/* $requestData['order'][0]['column'] contains colmun index, $requestData['order'][0]['dir'] contains order such as asc/desc  */	
+	// 			$query=mysqli_query($conn, $sql);
+
+	// 			$data = array();$no=1;
+	// 			while($row=mysqli_fetch_array($query) ) {  // preparing an array
+
+	// 				$cek_booking = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tipe_motor = '$row[id_tipe_kendaraan]' AND status = '2'")->row();
+ //          $cek_pl = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tipe_motor = '$row[id_tipe_kendaraan]' AND status = '3'")->row();
+	// 				$cek_nrfs = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tipe_motor = '$row[id_tipe_kendaraan]' AND tipe = 'NRFS' AND status < 4")->row();
+ //          $cek_pinjaman = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tipe_motor = '$row[id_tipe_kendaraan]' AND tipe = 'PINJAMAN' AND status < 4")->row();
+		      
+	// 	      $cek_sl = $this->db->query("SELECT COUNT(id_modell) AS jum FROM tr_shipping_list 
+	// 	                        WHERE no_shipping_list NOT IN (SELECT no_shipping_list FROM tr_scan_barcode WHERE no_shipping_list IS NOT NULL) 
+	// 	                        AND id_modell = '$row[id_tipe_kendaraan]'")->row();
+
+	// 	      $cek_sl1 = $this->db->query("SELECT COUNT(id_modell) AS jum FROM tr_shipping_list WHERE tr_shipping_list.id_modell = '$row[id_tipe_kendaraan]'")->row();
+	// 	      $cek_sl2 = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode INNER JOIN ms_item ON tr_scan_barcode.tipe_motor = ms_item.id_tipe_kendaraan AND tr_scan_barcode.warna = ms_item.id_warna 
+	// 	        WHERE tipe_motor = '$row[id_tipe_kendaraan]' AND ms_item.bundling <> 'ya'")->row();      
+		      
+	// 	      $cek_in1 = $this->db->query("SELECT SUM(tr_sipb.jumlah) AS jum FROM tr_sipb WHERE tr_sipb.id_tipe_kendaraan = '$row[id_tipe_kendaraan]'")->row();                
+	// 	      $cek_in2 = $this->db->query("SELECT COUNT(tr_shipping_list.no_mesin) AS jum FROM tr_shipping_list WHERE tr_shipping_list.id_modell = '$row[id_tipe_kendaraan]'")->row();		      
+	// 	      $sipb = 0;
+
+	// 	      $total = $row['ready'] + $cek_booking->jum + $cek_pl->jum + $cek_nrfs->jum  + $cek_pinjaman->jum;
+	// 	      // $total = $row['ready'];
+	// 	      if($cek_in1->jum - $cek_in2->jum > 0){
+	// 	        $rr = $cek_in1->jum - $cek_in2->jum;
+	// 	      }else{
+	// 	        $rr = 0;
+	// 	      }
+
+	// 	      if($cek_sl1->jum - $cek_sl2->jum > 0){
+	// 	        $r2 = $cek_sl1->jum - $cek_sl2->jum;
+	// 	      }else{
+	// 	        $r2 = 0;
+	// 	      }             
+		      
+	// 	      $stok_md = $total;
+
+	// 	      // $cek_qty = $this->db->query("SELECT COUNT(tr_scan_barcode.no_mesin) AS jum FROM tr_penerimaan_unit_dealer_detail
+	// 	      //     LEFT JOIN tr_penerimaan_unit_dealer ON tr_penerimaan_unit_dealer_detail.id_penerimaan_unit_dealer = tr_penerimaan_unit_dealer.id_penerimaan_unit_dealer               
+	// 	      //     LEFT JOIN tr_scan_barcode ON tr_penerimaan_unit_dealer_detail.no_mesin = tr_scan_barcode.no_mesin
+	// 	      //     LEFT JOIN ms_tipe_kendaraan ON tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan
+	// 	      //     LEFT JOIN ms_warna ON tr_scan_barcode.warna = ms_warna.id_warna
+	// 	      //     LEFT JOIN ms_dealer ON tr_penerimaan_unit_dealer.id_dealer = ms_dealer.id_dealer                
+	// 	      //     WHERE tr_scan_barcode.tipe_motor = '$row[id_tipe_kendaraan]' AND tr_scan_barcode.status = '4'")->row();
+
+	// 	      $cek_qty = $this->db->query("SELECT COUNT(tr_scan_barcode.no_mesin) AS jum FROM tr_penerimaan_unit_dealer_detail
+
+ //                LEFT JOIN tr_penerimaan_unit_dealer ON tr_penerimaan_unit_dealer_detail.id_penerimaan_unit_dealer = tr_penerimaan_unit_dealer.id_penerimaan_unit_dealer               
+
+ //                LEFT JOIN tr_scan_barcode ON tr_penerimaan_unit_dealer_detail.no_mesin = tr_scan_barcode.no_mesin
+
+ //                LEFT JOIN ms_tipe_kendaraan ON tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan
+
+ //                LEFT JOIN ms_warna ON tr_scan_barcode.warna = ms_warna.id_warna
+
+ //                LEFT JOIN ms_dealer ON tr_penerimaan_unit_dealer.id_dealer = ms_dealer.id_dealer                
+
+ //                WHERE tr_scan_barcode.tipe_motor = '$row[id_tipe_kendaraan]' 
+ //                AND tr_scan_barcode.status = '4'")->row();                     
+		      
+	// 	     //  $cek_unfill = $this->db->query("SELECT SUM(tr_do_po_detail.qty_do) AS jum FROM tr_do_po 
+	// 						// LEFT JOIN tr_do_po_detail ON tr_do_po.no_do = tr_do_po_detail.no_do
+	// 						// INNER JOIN ms_item ON tr_do_po_detail.id_item = ms_item.id_item
+	// 						// LEFT JOIN tr_picking_list ON tr_picking_list.no_do = tr_do_po.no_do
+	// 						// WHERE tr_picking_list.no_picking_list NOT IN (SELECT no_picking_list FROM tr_surat_jalan WHERE no_picking_list IS NOT NULL) 
+	// 						// AND ms_item.id_tipe_kendaraan = '$row[id_tipe_kendaraan]'")->row();
+	// 	      $cek_unfill = $this->db->query("SELECT SUM(tr_do_po_detail.qty_do) AS jum FROM tr_do_po 
+
+ //                        LEFT JOIN tr_do_po_detail ON tr_do_po.no_do = tr_do_po_detail.no_do
+
+ //                        LEFT JOIN tr_picking_list ON tr_picking_list.no_do = tr_do_po.no_do
+ //                        INNER JOIN ms_item ON tr_do_po_detail.id_item = ms_item.id_item
+ //                        WHERE tr_picking_list.no_picking_list NOT IN (SELECT no_picking_list FROM tr_surat_jalan WHERE no_picking_list IS NOT NULL)                          
+ //                        AND ms_item.id_tipe_kendaraan = '$row[id_tipe_kendaraan]'
+ //                        ")->row();
+	// 	      if(isset($cek_unfill->jum)){
+	// 	      	$unfill = $cek_unfill->jum;
+	// 	      }else{
+	// 	      	$unfill	= 0;
+	// 	      }
+
+	// 	      $cek_in = $this->db->query("SELECT COUNT(tr_surat_jalan_detail.no_mesin) AS jum FROM tr_surat_jalan_detail INNER JOIN tr_surat_jalan ON tr_surat_jalan_detail.no_surat_jalan = tr_surat_jalan.no_surat_jalan                       
+	// 	      				INNER JOIN ms_item ON tr_surat_jalan_detail.id_item = ms_item.id_item
+	// 	              WHERE tr_surat_jalan.no_surat_jalan NOT IN (SELECT no_surat_jalan FROM tr_penerimaan_unit_dealer WHERE no_surat_jalan IS NOT NULL)
+	// 	              AND ms_item.id_tipe_kendaraan = '$row[id_tipe_kendaraan]'")->row();
+		      
+	// 	      $total_stock = $r2 + $stok_md + $cek_unfill->jum + $cek_in->jum + $cek_qty->jum;
+	// 	      $stock_market = $stok_md + $cek_unfill->jum + $cek_in->jum + $cek_qty->jum;
+
+	// 	      $cek_sales = $this->db->query("SELECT COUNT(tr_sales_order.no_mesin) AS jum FROM tr_sales_order INNER JOIN tr_scan_barcode ON tr_sales_order.no_mesin = tr_scan_barcode.no_mesin
+	// 	              WHERE tr_scan_barcode.tipe_motor = '$row[id_tipe_kendaraan]'")->row();
+		      
+	// 	      if($cek_sales->jum != 0){
+	// 	        $stock_days = ceil(($stok_md / $cek_sales->jum) * 30);
+	// 	      }else{
+	// 	        $stock_days = ceil(($stok_md) * 30);
+	// 	      } 
+	// 	      if($total_stock > 0){
+	// 					$no++;
+	// 					$nestedData=array(); 
+
+	// 					$nestedData[] = $row["id_tipe_kendaraan"];
+	// 					$nestedData[] = $row["tipe_ahm"];
+	// 					$nestedData[] = $rr;
+	// 					$nestedData[] = $r2;
+	// 					$nestedData[] = $stok_md;
+	// 					$nestedData[] = $unfill;
+	// 					$nestedData[] = $cek_in->jum;
+	// 					$nestedData[] = $cek_qty->jum;
+	// 					$nestedData[] = $total_stock;
+	// 					$nestedData[] = $stock_market;
+	// 					$nestedData[] = $cek_sales->jum;
+	// 					$nestedData[] = $stock_days;
+						
+	// 					$data[] = $nestedData;						
+	// 				}		     				
+	// 			}
+
+
+
+	// 			$json_data = array(
+	// 						"draw"            => intval( $requestData['draw'] ),   // for every request/draw by clientside , they send a number as a parameter, when they recieve a response/data they first check the draw number, so we are sending same number in draw. 
+	// 						"recordsTotal"    => intval( $totalData ),  // total number of records
+	// 						"recordsFiltered" => intval( $totalFiltered ), // total number of records after searching, if there is no searching then totalFiltered = totalData
+	// 						"data"            => $data   // total data array
+	// 						);
+
+	// 			echo json_encode($json_data);  // send data as json format
+	// }
+
+	public function showDetailStok(){
+		$name = $this->session->userdata('nama');
+		if($name=="")
+		{
+			redirect(base_url(''),'refresh');
+			exit;
+		}
+
+		// getting total number records without any search
+		$sql = "SELECT ms_tipe_kendaraan.id_tipe_kendaraan,ms_tipe_kendaraan.tipe_ahm,(SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan AND status = '1' AND tipe='RFS') AS ready";
+		$sql.=" FROM ms_tipe_kendaraan";								
+		// $sql.=" WHERE 1=1";
+		// $sql.=" GROUP BY ms_tipe_kendaraan.id_tipe_kendaraan";				
+		// $sql.=" HAVING ready > 0";
+		// $query=mysqli_query($conn, $sql);
+		// $totalData = mysqli_num_rows($query);
+		// $totalFiltered = $totalData;  // when there is no search parameter then total number rows = total number filtered rows.
+
+		// $sql = "SELECT ms_tipe_kendaraan.id_tipe_kendaraan,ms_tipe_kendaraan.tipe_ahm,(SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan AND status = '1' AND tipe='RFS') AS ready";
+		// $sql.=" FROM ms_tipe_kendaraan";								
+		// $sql.=" WHERE 1=1";
+		// if( !empty($requestData['search']['value']) ) {   // if there is a search parameter, $requestData['search']['value'] contains search parameter
+		// 	$sql.=" AND (ms_tipe_kendaraan.id_tipe_kendaraan LIKE '".$requestData['search']['value']."%' ";    					
+		// 	$sql.=" OR ms_tipe_kendaraan.tipe_ahm LIKE '".$requestData['search']['value']."%' )";
+		// }
+		// $sql.=" GROUP BY ms_tipe_kendaraan.id_tipe_kendaraan";				
+		// $sql.=" HAVING ready > 0";
+		// $query=mysqli_query($conn, $sql);
+		// $totalFiltered = mysqli_num_rows($query); // when there is a search parameter then we have to modify total number filtered rows as per search result. 
+		// $sql.=" ORDER BY ". $columns[$requestData['order'][0]['column']]."   ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+		// /* $requestData['order'][0]['column'] contains colmun index, $requestData['order'][0]['dir'] contains order such as asc/desc  */	
+		// $query=mysqli_query($conn, $sql);
+
+		$query = $this->db->query("$sql");
+		$data = array();$no=1;
+		// while($row=mysqli_fetch_array($query) ) {  // preparing an array
+		if (isset($_GET['download'])) {
+			header("Content-type: application/octet-stream");
+			header("Content-Disposition: attachment; filename=Sales_&_Stock_Unit.xls");
+			header("Pragma: no-cache");
+			header("Expires: 0");
+			echo '<p align="center" style="font-weight:bold">Sales & Stock Unit</p>';
+			echo '<table border=1>';
+		}
+			echo '
+				<thead>
+	                <tr>
+	                  <th>Tipe</th>
+	                  <th>Deskripsi</th>
+	                  <th>Unfill AHM</th>
+	                  <th>Int AHM</th>
+	                  <th>Stok MD</th>
+	                  <th>Unfill Dealer</th>
+	                  <th>Int Dealer</th>
+	                  <th>Stok Dealer</th>
+	                  <th>Total Stok</th>
+	                  <th>Stok Market</th>
+	                  <th>Sales Dealer</th>
+	                  <th>Stock Days MD</th>
+	                </tr>
+	             </thead>
+	             <tbody>
+			';
+		$tot=['unfill_ahm'=>0,
+			  'int_ahm'=>0,
+			  'stok_md'=>0,
+			  'unfill_dealer'=>0,
+			  'int_dealer'=>0,
+			  'stok_dealer'=>0,
+			  'tot_stok'=>0,
+			  'stok_market'=>0,
+			  'sales_dealer'=>0,
+			  'stok_days'=>0
+			 ];
+		foreach ($query->result() as $row) {
+			
+					$cek_booking = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tipe_motor = '$row->id_tipe_kendaraan' AND status = '2'")->row();
+          $cek_pl = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tipe_motor = '$row->id_tipe_kendaraan' AND status = '3'")->row();
+					$cek_nrfs = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tipe_motor = '$row->id_tipe_kendaraan' AND tipe = 'NRFS' AND status < 4")->row();
+          $cek_pinjaman = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tipe_motor = '$row->id_tipe_kendaraan' AND tipe = 'PINJAMAN' AND status < 4")->row();
+		      
+		    
+		      
+		      $cek_in1 = $this->db->query("SELECT SUM(tr_sipb.jumlah) AS jum FROM tr_sipb WHERE tr_sipb.id_tipe_kendaraan = '$row->id_tipe_kendaraan'")->row();                
+		      $cek_in2 = $this->db->query("SELECT COUNT(tr_shipping_list.no_mesin) AS jum FROM tr_shipping_list WHERE tr_shipping_list.id_modell = '$row->id_tipe_kendaraan'")->row();		      
+		      $sipb = 0;
+
+		      $total = $row->ready + $cek_booking->jum + $cek_pl->jum + $cek_nrfs->jum  + $cek_pinjaman->jum;
+		      // $total = $row['ready'];
+		      if($cek_in1->jum - $cek_in2->jum > 0){
+		        $rr = $cek_in1->jum - $cek_in2->jum;
+		      }else{
+		        $rr = 0;
+		      }
+		     
+              $cek_sl1 = $this->db->query("SELECT COUNT(id_modell) AS jum FROM tr_shipping_list WHERE 
+                  tr_shipping_list.id_modell = '$row->id_tipe_kendaraan'")->row(); 
+          	  $cek_sl2_1 = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode
+                  LEFT JOIN ms_item ON tr_scan_barcode.id_item = ms_item.id_item  
+                  WHERE tr_scan_barcode.tipe_motor = '$row->id_tipe_kendaraan'")->row();      
+	        $cek_sl1_jum = $cek_sl1->jum;
+	        $cek_sl2_jum = $cek_sl2_1->jum;      
+	        if($cek_sl1_jum - $cek_sl2_jum >= 0){            
+	          $r2 = $cek_sl1_jum - $cek_sl2_jum;     
+	        }else{
+	          $r2 = 0;
+	        }        
+		      
+		      $stok_md = $total;
+
+		      // $cek_qty = $this->db->query("SELECT COUNT(tr_scan_barcode.no_mesin) AS jum FROM tr_penerimaan_unit_dealer_detail
+		      //     LEFT JOIN tr_penerimaan_unit_dealer ON tr_penerimaan_unit_dealer_detail.id_penerimaan_unit_dealer = tr_penerimaan_unit_dealer.id_penerimaan_unit_dealer               
+		      //     LEFT JOIN tr_scan_barcode ON tr_penerimaan_unit_dealer_detail.no_mesin = tr_scan_barcode.no_mesin
+		      //     LEFT JOIN ms_tipe_kendaraan ON tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan
+		      //     LEFT JOIN ms_warna ON tr_scan_barcode.warna = ms_warna.id_warna
+		      //     LEFT JOIN ms_dealer ON tr_penerimaan_unit_dealer.id_dealer = ms_dealer.id_dealer                
+		      //     WHERE tr_scan_barcode.tipe_motor = '$row->id_tipe_kendaraan' AND tr_scan_barcode.status = '4'")->row();
+
+		      $cek_qty = $this->db->query("SELECT COUNT(tr_scan_barcode.no_mesin) AS jum FROM tr_penerimaan_unit_dealer_detail
+
+                LEFT JOIN tr_penerimaan_unit_dealer ON tr_penerimaan_unit_dealer_detail.id_penerimaan_unit_dealer = tr_penerimaan_unit_dealer.id_penerimaan_unit_dealer               
+
+                LEFT JOIN tr_scan_barcode ON tr_penerimaan_unit_dealer_detail.no_mesin = tr_scan_barcode.no_mesin
+
+                LEFT JOIN ms_tipe_kendaraan ON tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan
+
+                LEFT JOIN ms_warna ON tr_scan_barcode.warna = ms_warna.id_warna
+
+                LEFT JOIN ms_dealer ON tr_penerimaan_unit_dealer.id_dealer = ms_dealer.id_dealer                
+
+                WHERE tr_scan_barcode.tipe_motor = '$row->id_tipe_kendaraan' 
+                AND tr_scan_barcode.status = '4'")->row();                     
+		      
+		     //  $cek_unfill = $this->db->query("SELECT SUM(tr_do_po_detail.qty_do) AS jum FROM tr_do_po 
+							// LEFT JOIN tr_do_po_detail ON tr_do_po.no_do = tr_do_po_detail.no_do
+							// INNER JOIN ms_item ON tr_do_po_detail.id_item = ms_item.id_item
+							// LEFT JOIN tr_picking_list ON tr_picking_list.no_do = tr_do_po.no_do
+							// WHERE tr_picking_list.no_picking_list NOT IN (SELECT no_picking_list FROM tr_surat_jalan WHERE no_picking_list IS NOT NULL) 
+							// AND ms_item.id_tipe_kendaraan = '$row->id_tipe_kendaraan'")->row();
+		      $cek_unfill2 = $this->db->query("SELECT COUNT(tr_picking_list_view.no_mesin) AS jum FROM tr_picking_list_view
+		      							LEFT JOIN tr_picking_list ON tr_picking_list_view.no_picking_list = tr_picking_list.no_picking_list
+		      							LEFT JOIN tr_do_po ON tr_picking_list.no_do = tr_do_po.no_do 
+                        LEFT JOIN tr_do_po_detail ON tr_do_po.no_do = tr_do_po_detail.no_do                        
+                        INNER JOIN ms_item ON tr_do_po_detail.id_item = ms_item.id_item
+                        WHERE tr_picking_list.no_picking_list NOT IN (SELECT no_picking_list FROM tr_surat_jalan WHERE no_picking_list IS NOT NULL)                          
+                        AND ms_item.id_tipe_kendaraan = '$row->id_tipe_kendaraan'
+                        ")->row();
+
+		      $cek_unfill = $this->db->query("SELECT COUNT(tr_picking_list_view.no_mesin) AS jum FROM tr_picking_list_view 
+								INNER JOIN ms_item ON tr_picking_list_view.id_item = ms_item.id_item 
+								WHERE tr_picking_list_view.no_mesin NOT IN 
+									(SELECT no_mesin FROM tr_surat_jalan_detail 
+										INNER JOIN tr_surat_jalan ON tr_surat_jalan.no_surat_jalan = tr_surat_jalan_detail.no_surat_jalan 
+										WHERE tr_surat_jalan.no_picking_list IS NOT NULL)
+								AND ms_item.id_tipe_kendaraan = '$row->id_tipe_kendaraan'")->row();
+		      if(isset($cek_unfill->jum)){
+		      	$unfill = $cek_unfill->jum;
+		      }else{
+		      	$unfill	= 0;
+		      }
+
+		      $cek_in = $this->db->query("SELECT COUNT(tr_surat_jalan_detail.no_mesin) AS jum FROM tr_surat_jalan_detail INNER JOIN tr_surat_jalan ON tr_surat_jalan_detail.no_surat_jalan = tr_surat_jalan.no_surat_jalan                       
+		      				INNER JOIN ms_item ON tr_surat_jalan_detail.id_item = ms_item.id_item
+		              WHERE tr_surat_jalan.no_surat_jalan NOT IN (SELECT no_surat_jalan FROM tr_penerimaan_unit_dealer WHERE no_surat_jalan IS NOT NULL)
+		              AND ms_item.id_tipe_kendaraan = '$row->id_tipe_kendaraan'")->row();
+		      
+		      $total_stock = $r2 + $stok_md + $cek_unfill->jum + $cek_in->jum + $cek_qty->jum;;
+		      $stock_market = $stok_md + $cek_unfill->jum + $cek_in->jum + $cek_qty->jum;
+
+		      $cek_sales = $this->db->query("
+		      	SELECT SUM(jum) AS jum FROM (
+					SELECT COUNT(tr_sales_order.no_mesin) AS jum 
+								FROM tr_sales_order 
+								INNER JOIN tr_scan_barcode ON tr_sales_order.no_mesin = tr_scan_barcode.no_mesin
+								WHERE tr_scan_barcode.tipe_motor = '$row->id_tipe_kendaraan'
+								AND LEFT(tgl_cetak_invoice,7)>='2019-12'
+					UNION
+					SELECT COUNT(tr_sales_order_gc_nosin.no_mesin) AS jum FROM tr_sales_order_gc_nosin  
+							    INNER JOIN tr_scan_barcode ON tr_sales_order_gc_nosin.no_mesin = tr_scan_barcode.no_mesin                    
+							    INNER JOIN tr_sales_order_gc ON tr_sales_order_gc.id_sales_order_gc = tr_sales_order_gc_nosin.id_sales_order_gc
+							    INNER JOIN tr_spk_gc ON tr_spk_gc.no_spk_gc = tr_sales_order_gc.no_spk_gc
+							    INNER JOIN ms_tipe_kendaraan ON ms_tipe_kendaraan.id_tipe_kendaraan=tr_scan_barcode.tipe_motor
+							    WHERE tr_scan_barcode.tipe_motor = '$row->id_tipe_kendaraan'
+								AND LEFT(tgl_cetak_invoice,7)>='2019-12'
+				) AS tabel
+		      	")->row();
+		      
+		      if($cek_sales->jum != 0){
+		        $stock_days = ceil(($stok_md / $cek_sales->jum) * 30);
+		      }else{
+		        $stock_days = ceil(($stok_md) * 30);
+		      } 
+		      if($rr > 0 OR $r2 > 0 OR $stok_md > 0 OR $unfill > 0 OR $cek_in->jum > 0 OR $cek_qty->jum > 0 OR $total_stock > 0 OR $stock_market > 0 OR $cek_sales->jum > 0 OR $stock_days > 0){
+						$no++;
+						// $nestedData=array(); 
+				$id_tipe_kendaraan = $row->id_tipe_kendaraan;
+				$tipe_ahm = $row->tipe_ahm;
+				echo "
+						<tr>
+							<td>$id_tipe_kendaraan</td>
+							<td>$tipe_ahm</td>
+							<td>$rr</td>
+							<td>$r2</td>
+							<td>$stok_md</td>
+							<td>$unfill</td>
+							<td>$cek_in->jum</td>
+							<td>$cek_qty->jum</td>
+							<td>$total_stock</td>
+							<td>$stock_market</td>
+							<td>$cek_sales->jum</td>
+							<td>$stock_days</td>
+						</tr>
+					";
+				$tot['unfill_ahm']    +=$rr;
+				$tot['int_ahm']       += $r2;                            
+				$tot['stok_md']       += $stok_md;                              
+				$tot['unfill_dealer'] += $unfill; 
+				$tot['int_dealer']    += $cek_in->jum;        
+				$tot['stok_dealer']   += $cek_qty->jum;  
+				$tot['tot_stok']      += $total_stock;             
+				$tot['stok_market']   += $stock_market;
+				$tot['sales_dealer']  += $cek_sales->jum;
+				$tot['stok_days']     += isset($stock_days)?$stock_days:0;					
+			}		     				
+		}
+		echo '</tbody>';
+		echo '<tfoot>';
+		echo '<th colspan=2>Total</th>';
+		echo '<th>'.$tot['unfill_ahm'].'</th>';
+		echo '<th>'.$tot['int_ahm'].'</th>';
+		echo '<th>'.$tot['stok_md'].'</th>';
+		echo '<th>'.$tot['unfill_dealer'].'</th>';
+		echo '<th>'.$tot['int_dealer'].'</th>';
+		echo '<th>'.$tot['stok_dealer'].'</th>';
+		echo '<th>'.$tot['tot_stok'].'</th>';
+		echo '<th>'.$tot['stok_market'].'</th>';
+		echo '<th>'.$tot['sales_dealer'].'</th>';
+		echo '<th>'.$tot['stok_days'].'</th>';
+		echo '</tfoot>';
+		if (isset($_GET['download'])) {
+			echo '</table>';
+		}
+	}
+	public function realtime_stok(){
+		$sql = "SELECT DISTINCT(tr_scan_barcode.id_item),ms_dealer.kode_dealer_md,tr_do_po.id_dealer,ms_dealer.nama_dealer,ms_tipe_kendaraan.tipe_ahm,ms_warna.warna"; 
+		$sql .=" FROM tr_scan_barcode LEFT JOIN tr_picking_list_view ON tr_scan_barcode.no_mesin = tr_picking_list_view.no_mesin";
+    $sql .=" LEFT JOIN tr_picking_list ON tr_picking_list.no_picking_list = tr_picking_list_view.no_picking_list"; 
+		$sql .=" LEFT JOIN ms_tipe_kendaraan ON tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan";
+    $sql .=" LEFT JOIN ms_warna ON tr_scan_barcode.warna = ms_warna.id_warna";
+		$sql .=" LEFT JOIN tr_do_po ON tr_picking_list.no_do = tr_do_po.no_do";                
+		$sql .=" LEFT JOIN ms_dealer ON tr_do_po.id_dealer = ms_dealer.id_dealer";                                
+		$sql .=" GROUP BY tr_scan_barcode.id_item,ms_dealer.id_dealer";
+		$sql .=" ORDER BY tr_scan_barcode.id_item ASC";		
+		$query = $this->db->query("$sql");
+		$data = array();$no=1;		
+		foreach ($query->result() as $isi) {
+			$cek_qty = $this->db->query("SELECT COUNT(tr_scan_barcode.no_mesin) AS jum FROM tr_penerimaan_unit_dealer_detail
+          LEFT JOIN tr_penerimaan_unit_dealer ON tr_penerimaan_unit_dealer_detail.id_penerimaan_unit_dealer = tr_penerimaan_unit_dealer.id_penerimaan_unit_dealer               
+          LEFT JOIN tr_scan_barcode ON tr_penerimaan_unit_dealer_detail.no_mesin = tr_scan_barcode.no_mesin
+          LEFT JOIN ms_tipe_kendaraan ON tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan
+          LEFT JOIN ms_warna ON tr_scan_barcode.warna = ms_warna.id_warna
+          LEFT JOIN ms_dealer ON tr_penerimaan_unit_dealer.id_dealer = ms_dealer.id_dealer                
+          WHERE tr_scan_barcode.id_item = '$isi->id_item' AND tr_penerimaan_unit_dealer.id_dealer = '$isi->id_dealer' 
+          AND tr_scan_barcode.status = '4'")->row();                
+      $cek_unfill2 = $this->db->query("SELECT SUM(tr_do_po_detail.qty_do) AS jum FROM tr_do_po 
+                  LEFT JOIN tr_do_po_detail ON tr_do_po.no_do = tr_do_po_detail.no_do
+                  LEFT JOIN tr_picking_list ON tr_picking_list.no_do = tr_do_po.no_do
+                  WHERE tr_picking_list.no_picking_list NOT IN (SELECT no_picking_list FROM tr_surat_jalan WHERE no_picking_list IS NOT NULL)                          
+                  AND tr_do_po_detail.id_item = '$isi->id_item' AND tr_do_po.id_dealer = '$isi->id_dealer'")->row();
+      
+      $cek_unfill = $this->db->query("SELECT COUNT(tr_picking_list_view.no_mesin) AS jum FROM tr_picking_list_view 
+								INNER JOIN tr_picking_list ON tr_picking_list_view.no_picking_list = tr_picking_list.no_picking_list
+								INNER JOIN tr_do_po ON tr_picking_list.no_do = tr_do_po.no_do
+								INNER JOIN ms_item ON tr_picking_list_view.id_item = ms_item.id_item 
+								WHERE tr_picking_list_view.no_mesin NOT IN 
+									(SELECT no_mesin FROM tr_surat_jalan_detail 
+										INNER JOIN tr_surat_jalan ON tr_surat_jalan.no_surat_jalan = tr_surat_jalan_detail.no_surat_jalan 
+										WHERE tr_surat_jalan.no_picking_list IS NOT NULL)
+								AND ms_item.id_item = '$isi->id_item' AND tr_do_po.id_dealer = '$isi->id_dealer'")->row();
+
+      $cek_in = $this->db->query("SELECT COUNT(tr_surat_jalan_detail.no_mesin) AS jum FROM tr_surat_jalan_detail INNER JOIN tr_surat_jalan ON tr_surat_jalan_detail.no_surat_jalan = tr_surat_jalan.no_surat_jalan                       
+                  WHERE tr_surat_jalan.no_surat_jalan NOT IN (SELECT no_surat_jalan FROM tr_penerimaan_unit_dealer WHERE no_surat_jalan IS NOT NULL)
+                  AND tr_surat_jalan_detail.id_item = '$isi->id_item' AND tr_surat_jalan.id_dealer = '$isi->id_dealer'")->row();
+      $dr = $this->m_admin->getByID("ms_dealer","id_dealer",$isi->id_dealer);
+      if($dr->num_rows() > 0){
+        $t = $dr->row();
+        $nama_dealer = $t->nama_dealer;
+        $kode_dealer_md = $t->kode_dealer_md;
+      }else{
+        $nama_dealer = "";
+        $kode_dealer_md = "";
+      }
+      if($cek_qty->jum>0 OR $cek_unfill->jum>0 OR $cek_in->jum>0){			
+				echo "
+					<tr>
+	          <td>$no</td>
+	          <td>
+	            <a href='h1/realtime_stok_d/detail?id=$isi->id_item&d=$isi->id_dealer'>
+	              <button type='button' title='Detail' class='btn bg-maroon btn-flat btn-sm'><i class='fa fa-eye'></i> Detail</button>
+	            </a>
+	          </td>
+	          <td>$isi->id_item</td>
+	          <td>$kode_dealer_md</td>
+	          <td>$nama_dealer</td>
+	          <td>$isi->tipe_ahm</td>
+	          <td>$isi->warna</td>
+	          <td>$cek_qty->jum</td>
+	          <td>$cek_unfill->jum</td>
+	          <td>$cek_in->jum</td>              
+	        </tr>
+				";						
+				$no++;			
+			}		     				
+		}
+	}
+
+	function getDashboard()
+	{
+		$tanggal = $this->input->get('tgl');
+		$result = $this->m_admin->get_data_dashboard($tanggal);
+		echo json_encode($result);
+	}
+
+	function getSegmentByCategory($tanggal,$kategori)
+	{
+		// $tanggal = '2019-12-12';
+		$bulan = date("Y-m", strtotime($tanggal));
+		$bulan_kemarin = date('Y-m', strtotime('-1 months', strtotime($tanggal)));
+
+		$tgl_akhir_min1 = date("Y-m-d", strtotime($bulan_kemarin.'-'.substr($tanggal, 8,2)));
+
+		$series[]=['name'=>'01-'.mediumdate_indo($tgl_akhir_min1,' '),'color'=>'#3286f3'];
+		$series[]=['name'=>'01-'.mediumdate_indo($tanggal,' '),'color'=>'#ff7a57'];
+
+		$tanggal_arr = [$bulan.'-01',$tanggal];
+		$tanggal_arr_min1 = [$bulan_kemarin.'-01',$tgl_akhir_min1];
+		$where ='';
+		if ($kategori!='ALL TYPE') {
+			$where =" AND ms_segment.id_kategori=(SELECT id_kategori FROM ms_kategori WHERE kategori='$kategori')";
+		}
+		$get_seg = $this->db->query("SELECT id_segment,segment FROM ms_segment 
+			JOIN ms_kategori ON ms_kategori.id_kategori=ms_segment.id_kategori
+			WHERE ms_segment.active=1 $where ORDER BY ms_kategori.kategori,ms_segment.order_by_dashboard");
+		$bulan_at      = 0;
+		$bulan_min1_at = 0;
+		foreach ($get_seg->result() as $rs) {
+			$bulan_ini = $this->m_admin->get_penjualan_inv('range_tanggal', $tanggal_arr, null, null, null,null,null,null,null,null,$rs->id_segment);
+			$bulan_kemarin = $this->m_admin->get_penjualan_inv('range_tanggal', $tanggal_arr_min1, null, null, null,null,null,null,null,null,$rs->id_segment);
+			$categories[] = $rs->segment;
+			// $series[0]['data'][]['y']=$bulan_kemarin;
+			// $series[1]['data'][]['y']=$bulan_ini;
+
+			$series[0]['data'][]=['y'=>$bulan_kemarin];
+			$series[1]['data'][]=['y'=>$bulan_ini];
+			$bulan_at += $bulan_ini;
+			$bulan_min1_at += $bulan_kemarin;
+		}
+		$categories[] = 'TOTAL';
+		// $series[0]['data'][]['y'] =$bulan_min1_at;
+		// $series[1]['data'][]['y'] =$bulan_at;
+
+		$series[0]['data'][]=['y'=>$bulan_min1_at];
+		$series[1]['data'][]=['y'=>$bulan_at];
+
+		return $result = ['categories'=>$categories,'series'=>$series];
+		// echo json_encode($result);
+	}
+
+	function chartByCategory()
+	{
+		$tanggal    = $this->input->post('tanggal');
+		$categories = $this->input->post('categories');
+		if ($categories!=null) {
+			$result = $this->getSegmentByCategory($tanggal, $categories);
+			echo json_encode($result);
+			exit();
+		}
+		// $tanggal = '2019-12-12';
+		$bulan = date("Y-m", strtotime($tanggal));
+		$bulan_kemarin = date('Y-m', strtotime('-1 months', strtotime($tanggal)));
+
+		$tgl_akhir_min1 = date("Y-m-d", strtotime($bulan_kemarin.'-'.substr($tanggal, 8,2)));
+
+		$series[]=['name'=>'01-'.mediumdate_indo($tgl_akhir_min1,' '),'color'=>'#3286f3'];
+		$series[]=['name'=>'01-'.mediumdate_indo($tanggal,' '),'color'=>'#ff7a57'];
+
+		$tanggal_arr = [$bulan.'-01',$tanggal];
+		$tanggal_arr_min1 = [$bulan_kemarin.'-01',$tgl_akhir_min1];
+
+		$get_ctg = $this->db->query("SELECT kategori,id_kategori FROM ms_kategori WHERE id_kategori IN('T','S','C') ORDER BY kategori ASC");
+		$bulan_at = 0;
+		$bulan_min1_at = 0;
+		foreach ($get_ctg->result() as $rs) {
+			$bulan_ini = $this->m_admin->get_penjualan_inv('range_tanggal', $tanggal_arr, null, null, null,$rs->id_kategori);
+			$bulan_kemarin = $this->m_admin->get_penjualan_inv('range_tanggal', $tanggal_arr_min1, null, null, null,$rs->id_kategori);
+			$categories[] = $rs->kategori;
+			// $series[0]['data'][]['y']=$bulan_kemarin;
+			// $series[1]['data'][]['y']=$bulan_ini;
+
+			$series[0]['data'][]=['y'=>$bulan_kemarin];
+			$series[1]['data'][]=['y'=>$bulan_ini];
+			$bulan_at += $bulan_ini;
+			$bulan_min1_at += $bulan_kemarin;
+		}
+		$categories[] = 'ALL TYPE';
+		// $series[0]['data'][]['y'] =$bulan_min1_at;
+		// $series[1]['data'][]['y'] =$bulan_at;
+
+		$series[0]['data'][]=['y'=>$bulan_min1_at];
+		$series[1]['data'][]=['y'=>$bulan_at];
+
+		$result = ['categories'=>$categories,'series'=>$series];
+		echo json_encode($result);
+	}
+
+	function getFinco($bulan)
+	{
+		$get_finco = $this->db->query("SELECT * FROM (
+                            SELECT id_finance_company 
+                            FROM tr_sales_order
+                            JOIN tr_scan_barcode ON tr_scan_barcode.no_mesin=tr_sales_order.no_mesin
+                            INNER JOIN tr_spk ON tr_spk.no_spk=tr_sales_order.no_spk
+                            JOIN ms_tipe_kendaraan ON ms_tipe_kendaraan.`id_tipe_kendaraan`=tr_scan_barcode.tipe_motor
+                            WHERE LEFT(tgl_cetak_invoice,7)='$bulan' AND id_finance_company IS NOT NULL
+                            GROUP BY tr_spk.id_finance_company
+                            UNION
+                            SELECT id_finance_company 
+                            FROM tr_sales_order_gc_nosin  
+                            JOIN tr_scan_barcode ON tr_sales_order_gc_nosin.no_mesin = tr_scan_barcode.no_mesin                    
+                            JOIN tr_sales_order_gc ON tr_sales_order_gc.id_sales_order_gc = tr_sales_order_gc_nosin.id_sales_order_gc
+                            INNER JOIN tr_spk_gc ON tr_spk_gc.no_spk_gc = tr_sales_order_gc.no_spk_gc
+                            JOIN ms_tipe_kendaraan ON ms_tipe_kendaraan.`id_tipe_kendaraan`=tr_scan_barcode.tipe_motor
+                            WHERE LEFT(tgl_cetak_invoice,7)='$bulan' AND id_finance_company IS NOT NULL
+                            GROUP BY id_finance_company
+                        ) AS tabel
+			INNER JOIN ms_finance_company ON ms_finance_company.id_finance_company = tabel.id_finance_company
+					");
+		return $get_finco;
+	}
+
+	function getDistrict($bulan)
+	{
+		$district = $this->db->query("SELECT * FROM (
+                            SELECT tr_spk.id_kabupaten, kabupaten 
+                            FROM tr_sales_order
+                            INNER JOIN tr_spk ON tr_spk.no_spk=tr_sales_order.no_spk
+                            INNER JOIN ms_dealer ON ms_dealer.id_dealer=tr_sales_order.id_dealer
+                            INNER JOIN ms_kelurahan ON ms_kelurahan.id_kelurahan=ms_dealer.id_kelurahan
+                            INNER JOIN ms_kecamatan ON ms_kecamatan.id_kecamatan=ms_kelurahan.id_kecamatan
+                            INNER JOIN ms_kabupaten ON ms_kabupaten.id_kabupaten=ms_kecamatan.id_kabupaten
+                            WHERE LEFT(tgl_cetak_invoice,7)='$bulan'
+                            GROUP BY kabupaten
+                            UNION
+
+                            SELECT tr_spk_gc.id_kabupaten, kabupaten 
+                            FROM tr_sales_order_gc
+                            INNER JOIN tr_spk_gc ON tr_spk_gc.no_spk_gc = tr_sales_order_gc.no_spk_gc
+                            INNER JOIN ms_dealer ON ms_dealer.id_dealer=tr_sales_order_gc.id_dealer
+                            INNER JOIN ms_kelurahan ON ms_kelurahan.id_kelurahan=ms_dealer.id_kelurahan
+                            INNER JOIN ms_kecamatan ON ms_kecamatan.id_kecamatan=ms_kelurahan.id_kecamatan
+                            INNER JOIN ms_kabupaten ON ms_kabupaten.id_kabupaten=ms_kecamatan.id_kabupaten
+                            WHERE LEFT(tgl_cetak_invoice,7)='$bulan'
+                            GROUP BY kabupaten
+                        ) AS tabel GROUP BY kabupaten
+					");
+		return $district;
+	}
+
+	// function chartByFinco()
+	// {
+	// 	$tanggal = $this->input->post('tanggal');
+	// 	$tanggal = '2019-12-19';
+	// 	$bulan = date("Y-m", strtotime($tanggal));
+	// 	$bulan_kemarin = date('Y-m', strtotime('-1 months', strtotime($tanggal)));
+
+	// 	$series[]=['name'=>'M-1','color'=>'#3286f3'];
+	// 	$series[]=['name'=>'M','color'=>'#ff7a57'];
+
+	// 	$get_finco = $this->getFinco($bulan);
+	// 	foreach ($get_finco->result() as $rs) {
+	// 		$bulan_ini = $this->m_admin->get_penjualan_inv('bulan', $bulan, null, null, null,null,$rs->id_finance_company);
+	// 		$bulan_kemarin = $this->m_admin->get_penjualan_inv('bulan', $bulan_kemarin, null, null, null,null,$rs->id_finance_company);
+	// 		$categories[] = $rs->finance_company;
+	// 		$series[0]['data'][]=$bulan_kemarin;
+	// 		$series[1]['data'][]=$bulan_ini;
+	// 	}
+	// 	$result = ['categories'=>$categories,'series'=>$series];
+	// 	echo json_encode($result);
+	// }
+
+	function chartByFinco()
+	{
+		$tanggal = $this->input->post('tanggal');
+		$tanggal = '2019-12-19';
+		$bulan = date("Y-m", strtotime($tanggal));
+		$bulan_kemarin = date('Y-m', strtotime('-1 months', strtotime($tanggal)));
+
+		$series[]=['name'=>'M-1','color'=>'#3286f3'];
+		$series[]=['name'=>'M','color'=>'#ff7a57'];
+
+		$get_finco = $this->getFinco($bulan);
+		foreach ($get_finco->result() as $rs) {
+			$bulan_ini = $this->m_admin->get_penjualan_inv('bulan', $bulan, null, null, null,null,$rs->id_finance_company);
+			$bulan_kemarin = $this->m_admin->get_penjualan_inv('bulan', $bulan_kemarin, null, null, null,null,$rs->id_finance_company);
+			$finco[]=['finco'=>$rs->finance_company,'m'=>$bulan_ini,'m1'=>$bulan_kemarin];
+			// $categories[] = $rs->finance_company;
+			// $series[0]['data'][]=$bulan_kemarin;
+			// $series[1]['data'][]=$bulan_ini;
+		}
+		array_multisort(array_map(function($element) {
+		      return $element['m'];
+		  }, $finco), SORT_DESC, $finco);
+		foreach ($finco as $fc) {
+			$categories[] = $fc['finco'];
+			$series[0]['data'][]=$fc['m1'];
+			$series[1]['data'][]=$fc['m'];	
+		}
+		$result = ['categories'=>$categories,'series'=>$series];
+		echo json_encode($result);
+	}
+
+	function chartByContribution()
+	{
+		$tanggal = $this->input->post('tanggal');
+		// $tanggal = '2019-12-12';
+		$bulan = date("Y-m", strtotime($tanggal));
+		$tanggal_arr = [$bulan.'-01',$tanggal];
+		$bulan_kemarin = date('Y-m', strtotime('-1 months', strtotime($tanggal)));
+
+		$get_finco = $this->getFinco($bulan);
+		foreach ($get_finco->result() as $rs) {
+			$hari_ini = $this->m_admin->get_penjualan_inv('range_tanggal', $tanggal_arr, null, null, null,null,$rs->id_finance_company);
+			$data[] = ['name'=>$rs->finance_company,'y'=>$hari_ini];
+		}
+		array_multisort(array_map(function($element) {
+		      return $element['y'];
+		  }, $data), SORT_DESC, $data);
+		$no=1;
+		$new_data[4]['y']=0;
+		foreach ($data as $rs) {
+			if ($no<=3) {
+				$new_data[$no]= ['name'=>$rs['name'],'y'=>$rs['y']];
+			}else{
+				$new_data[4]['y']+=$rs['y'];
+				$new_data[4]['name']='OTHER';
+			}
+			$no++;
+		}
+		array_multisort(array_map(function($element) {
+		      return $element['y'];
+		  }, $new_data), SORT_DESC, $new_data);
+
+		$new_data[5]=['name'=>'CASH','y'=>$this->m_admin->get_penjualan_inv('range_tanggal', $tanggal_arr, null, null, null,null,null,null,'cash')];
+		$sum = array_sum(array_column($new_data, 'y'));
+		foreach ($new_data as $key=> $dt) {
+			$persen = abs(@(round((($dt['y']/$sum) * 100),0)));
+			$data_n[]=$dt['y'];
+			$labels[]=$dt['name'].' ('.$persen.' %)';
+			// $backgroundColor[]='#'.random_hex(6);
+		};
+		$backgroundColor =['#66a7fb','#fced87','#ff7a57','#4bddb8','#a4a4a4'];
+		$result = ['labels'=>$labels,'data'=>$data_n,'backgroundColor'=>$backgroundColor];
+		echo json_encode($result);
+		
+	}
+
+	function getSalesByDistrict()
+	{
+		$tanggal         = $this->input->post('tanggal');
+		// $tanggal = '2019-12-13';
+		if (isset($_GET['download'])) {
+			header("Content-type: application/octet-stream");
+			header("Content-Disposition: attachment; filename=Sales_Comparison_By_District.xls");
+			header("Pragma: no-cache");
+			header("Expires: 0");
+			echo '<p align="center" style="font-weight:bold">Sales Comparison By District</p>';
+			$tanggal        = $this->input->get('tanggal');
+		}
+
+		$bulan           = date("Y-m", strtotime($tanggal));
+		$bulan_kemarin   = date('Y-m', strtotime('-1 months', strtotime($tanggal)));
+		$tanggal_kemarin = date('Y-m-d', strtotime('-1 days', strtotime($tanggal)));
+
+		$tgl_akhir_min1 = date("Y-m-d", strtotime($bulan_kemarin.'-'.substr($tanggal, 8,2)));
+
+		$tanggal_arr = [$bulan.'-01',$tanggal];
+		$tanggal_arr_min1 = [$bulan_kemarin.'-01',$tgl_akhir_min1];
+
+		$district = $this->getDistrict($bulan);
+		$get_ctg = $this->db->query("SELECT kategori,id_kategori FROM ms_kategori WHERE active=1 AND id_kategori IN('T','S','C') ORDER BY kategori ASC");
+
+		// $bulan = '2019-12-10';
+		// $bulan_kemarin = '2019-12-09';
+
+		echo '<table border=1>';
+		echo '
+			<thead>
+			<tr>
+				<td rowspan=2 style="width:30%">District</td>';
+		foreach ($get_ctg->result() as $rs) {
+			echo '<td colspan=3>'.$rs->kategori.'</td>';
+			$total[$rs->id_kategori]['m_1']=0;
+			$total[$rs->id_kategori]['m']=0;
+		}
+		echo '<td colspan=3>ALL TYPE</td>';
+		$total['ALL TYPE']=['m_1'=>0,'m'=>0];
+		echo'
+			</tr>
+		';
+		echo '<tr>';
+		for ($i = 0; $i <= $get_ctg->num_rows(); $i++) {
+			echo '<td style="width:14%">M-1</td>';
+			echo '<td style="width:10%">M</td>';
+			echo '<td style="width:10%">%</td>';
+		}
+		echo '</tr>';
+		echo '</thead>';
+		echo '<tbody>';
+		$no=1;
+		foreach ($district->result() as $dst) {
+			echo '<tr>';
+			// echo '<td>'.$no.'</td>';
+			echo '<td>'.$dst->kabupaten.'</td>';
+			$t_m=0;$t_m1=0;
+			foreach ($get_ctg->result() as $ktg) {
+				$bulan_ini = $this->m_admin->get_penjualan_inv('range_tanggal', $tanggal_arr, null, null, null,$ktg->id_kategori,null,$dst->id_kabupaten);
+				$bulan_kemarin = $this->m_admin->get_penjualan_inv('range_tanggal', $tanggal_arr_min1, null, null, null,$ktg->id_kategori,null,$dst->id_kabupaten);
+				$persen = abs(@(($bulan_kemarin/$bulan_ini)-1)*100);
+				echo '<td>'.$bulan_kemarin.'</td>';
+				echo '<td>'.$bulan_ini.'</td>';
+				echo '<td>'.$persen.'%</td>';
+				$total[$ktg->id_kategori]['m_1'] += $bulan_kemarin; 
+				$total[$ktg->id_kategori]['m'] += $bulan_ini; 
+				$t_m1 +=$bulan_kemarin;
+				$t_m+=$bulan_ini;
+				$total['ALL TYPE']['m_1']+=$bulan_kemarin;
+				$total['ALL TYPE']['m']+=$bulan_ini;
+				// $data[$dst->id_kabupaten][$ktg->id_kategori]=['m_1'=>$bulan_kemarin,
+				// 						   'm'=>$bulan_ini,
+				// 						   'persen'=>(float)number_format($persen,2)
+				// 						  ];
+			}
+			$persen = abs(@(($t_m1/$t_m)-1)*100);
+			echo '<td>'.$t_m1.'</td>';
+			echo '<td>'.$t_m.'</td>';
+			echo '<td>'.$persen.'%</td>';
+			echo '</tr>';
+			$no++;
+		}
+		echo '</tbody>';
+		echo '<tfoot>';
+		echo '<tr>';
+		echo '<td>Total</td>';
+		foreach ($total as $rs) {
+			$persen = abs(@(($rs['m_1']/$rs['m'])-1)*100);
+			echo '<td>'.$rs['m_1'].'</td>';
+			echo '<td>'.$rs['m'].'</td>';
+			echo '<td>'.$persen.'%</td>';
+		}
+		// echo json_encode($total);
+		echo '</tr>';
+		echo '</tfoot>';
+		echo '</table>';
+		// echo json_encode($data);
+	}
+
+	function getDealerGroup($bulan)
+	{
+		$group = $this->db->query("SELECT * FROM (
+                            SELECT id_group_dealer 
+                            FROM tr_sales_order
+                            INNER JOIN tr_spk ON tr_spk.no_spk=tr_sales_order.no_spk
+                            INNER JOIN ms_group_dealer_detail ON ms_group_dealer_detail.id_dealer=tr_sales_order.id_dealer
+                            WHERE LEFT(tgl_cetak_invoice,7)='$bulan'
+                            GROUP BY id_group_dealer
+                            UNION
+
+                            SELECT id_group_dealer 
+                            FROM tr_sales_order_gc
+                            INNER JOIN tr_spk_gc ON tr_spk_gc.no_spk_gc = tr_sales_order_gc.no_spk_gc
+                            INNER JOIN ms_group_dealer_detail ON ms_group_dealer_detail.id_dealer=tr_sales_order_gc.id_dealer
+                            WHERE LEFT(tgl_cetak_invoice,7)='$bulan'
+                            GROUP BY id_group_dealer
+                        ) AS tabel
+					");
+		return $group;
+	}
+
+	function getSalesByDealerGroup()
+	{
+		$tanggal        = $this->input->post('tanggal');
+		// $tanggal        = '2019-12-13';
+		if (isset($_GET['download'])) {
+			header("Content-type: application/octet-stream");
+			header("Content-Disposition: attachment; filename=Sales_Contribution_By_Dealer_Group.xls");
+			header("Pragma: no-cache");
+			header("Expires: 0");
+			echo '<p align="center" style="font-weight:bold">Sales Contribution By Dealer Group</p>';
+			$tanggal        = $this->input->get('tanggal');
+		}
+		$bulan          = date("Y-m", strtotime($tanggal));
+		$bulan_kemarin  = date('Y-m', strtotime('-1 months', strtotime($tanggal)));
+		
+		$tgl_akhir_min1 = date("Y-m-d", strtotime($bulan_kemarin.'-'.substr($tanggal, 8,2)));
+
+		$tanggal_arr = [$bulan.'-01',$tanggal];
+		$tanggal_arr_min1 = [$bulan_kemarin.'-01',$tgl_akhir_min1];
+
+		$group = $this->getDealerGroup($bulan);
+
+		echo '<table border=1>';
+		echo '<thead>
+			<tr>
+				
+				<th>Dealer Group</th>
+				<th>Sales M-1</th>
+				<th>Sales M</th>
+				<th>Growth vs M-1</th>
+				<th>Cont.</th>
+			</tr>
+			</thead>
+			';
+		echo '<tbody>';
+		$no=1;$tot_m=0;$tot_min1=0;$tot_cont=0;
+		$tot_bln_kmrn = $this->m_admin->get_penjualan_inv('range_tanggal', $tanggal_arr, null, null, null,null,null,null,null,null);
+		foreach ($group->result() as $gr) {
+			$bulan_ini = $this->m_admin->get_penjualan_inv('range_tanggal', $tanggal_arr, null, null, null,null,null,null,null,$gr->id_group_dealer);
+			$bulan_kemarin = $this->m_admin->get_penjualan_inv('range_tanggal', $tanggal_arr_min1, null, null, null,null,null,null,null,$gr->id_group_dealer);
+			$growth=abs(@($bulan_ini/$bulan_kemarin-1)*100);
+			$cont = round(($bulan_ini/$tot_bln_kmrn),4)*100;
+
+			$dt_result[]=['id_group_dealer'=> $gr->id_group_dealer,
+						 'bulan_kemarin'=> $bulan_kemarin,
+						 'bulan_ini'=> $bulan_ini,
+						 'growth'=> $growth,
+						 'cont'=> $cont
+						];
+			$no++;
+			$tot_m+=$bulan_ini;
+			$tot_min1+=$bulan_kemarin;
+			$tot_cont+=$cont;
+		}
+		array_multisort(array_map(function($element) {
+		      return $element['cont'];
+		  }, $dt_result), SORT_DESC, $dt_result);
+		$no=1;
+		foreach ($dt_result as $rs) {
+			echo '<tr>';
+			// echo '<td>'.$no.'</td>';
+			echo '<td>'.$rs['id_group_dealer'].'</td>';
+			echo '<td>'.$rs['bulan_kemarin'].'</td>';
+			echo '<td>'.$rs['bulan_ini'].'</td>';
+			echo '<td>'.$rs['growth'].' %</td>';
+			echo '<td>'.$rs['cont'].' %</td>';
+			echo '</tr>';
+			$no++;
+		}
+		$tot_growth=abs(@($tot_m/$tot_min1-1))*100;
+		echo '</tbody>';
+		echo '<tfoot>';
+		echo '<tr>';
+		echo '<td>Total</td>';
+		echo '<td>'.$tot_min1.'</td>';
+		echo '<td>'.$tot_m.'</td>';
+		echo '<td>'.$tot_growth.' %</td>';
+		echo '<td>'.round($tot_cont).' %</td>';
+		echo '</tr>';
+		echo '</tfoot>';
+		echo '</table>';
+		// echo json_encode($data);
+	}
+
+	function get_dp_finco($periode, $waktu, $id_finance_company, $range=null)
+	{
+		$where = 'WHERE 1=1 ';
+		if ($range!=null) {
+			$bawah = $range[0];
+			$atas = $range[1];
+			$where .="AND persen_dp BETWEEN $bawah AND $atas";
+		}
+		if ($periode=='range_tanggal') {
+			$where_periode =" WHERE tgl_cetak_invoice BETWEEN '".$waktu[0]."' AND '".$waktu[1]."'";
+		}
+
+		if ($periode=='tanggal') {
+			$where_periode ="WHERE tgl_cetak_invoice='$waktu'";
+		}
+		$get_unit = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM(
+					SELECT *,ROUND((dp_stor/total_bayar)*100) AS persen_dp FROM (
+						SELECT tr_scan_barcode.no_mesin,tr_sales_order.id_sales_order,dp_stor,the_road,id_finance_company,
+							CASE the_road 
+							WHEN 'On The Road' THEN harga_on_road-(IFNULL(voucher_2,0)+IFNULL(voucher_tambahan_2,0)+IFNULL(diskon,0)) 
+							ELSE harga_off_road-(IFNULL(voucher_2,0)+IFNULL(voucher_tambahan_2,0)+IFNULL(diskon,0))
+							END AS total_bayar
+						FROM ms_dealer 
+							    INNER JOIN tr_sales_order ON tr_sales_order.id_dealer = ms_dealer.id_dealer
+							    INNER JOIN tr_spk ON tr_spk.no_spk=tr_sales_order.no_spk
+							    INNER JOIN tr_scan_barcode ON tr_scan_barcode.no_mesin=tr_sales_order.no_mesin
+							    INNER JOIN ms_tipe_kendaraan ON ms_tipe_kendaraan.id_tipe_kendaraan=tr_scan_barcode.tipe_motor
+							    LEFT JOIN ms_group_dealer_detail ON ms_group_dealer_detail.id_dealer=ms_dealer.id_dealer
+							    $where_periode AND jenis_beli='kredit'
+							    AND id_finance_company='$id_finance_company'
+					) AS tabel 
+					) AS tabel2 $where
+					");
+		return $get_unit->row()->jum;
+	}
+
+	function get_penjualan_dp_finco($periode,$waktu,$id_finance_company,$range=null)
+	{
+		$total = $this->get_dp_finco($periode,$waktu,$id_finance_company);
+		$tot_range = $this->get_dp_finco($periode,$waktu,$id_finance_company,$range);
+		return @ROUND((($tot_range/$total)*100),2);
+		// return $tot_range.'-'.$total;
+	}
+
+	function getSalesFincoByDP()
+	{
+		$tanggal        = $this->input->post('tanggal');
+		
+		if (isset($_GET['download'])) {
+			header("Content-type: application/octet-stream");
+			header("Content-Disposition: attachment; filename=Sales_Finco_Contribution_By_Down_Payment.xls");
+			header("Pragma: no-cache");
+			header("Expires: 0");
+			echo '<p align="center" style="font-weight:bold">Sales Finco Contribution By Down Payment</p>';
+			$tanggal        = $this->input->get('tanggal');
+		}
+
+		// $tanggal        = '2019-12-12';
+		$bulan          = date("Y-m", strtotime($tanggal));
+		$bulan_kemarin  = date('Y-m', strtotime('-1 months', strtotime($tanggal)));
+		
+		$tgl_akhir_min1 = date("Y-m-d", strtotime($bulan_kemarin.'-'.substr($tanggal, 8,2)));
+
+		$tanggal_arr = [$bulan.'-01',$tanggal];
+		$tanggal_arr_min1 = [$bulan_kemarin.'-01',$tgl_akhir_min1];
+
+		$get_finco = $this->getFinco($bulan);
+
+		echo '<table border=1>';
+		echo '<thead>
+			<tr>
+				<th>Finco</th>
+				<th><10%</th>
+				<th>10-20%</th>
+				<th>>20%</th>
+			</tr>
+			</thead>
+			';
+		echo '<tbody>';
+		$no=1; $tot=['10'=>0,'1020'=>0,'20'=>0];
+		foreach ($get_finco->result() as $fnc) {
+			$dp_10   = $this->get_penjualan_dp_finco('range_tanggal',$tanggal_arr,$fnc->id_finance_company,[0,9]);
+			$dp_1020 = $this->get_penjualan_dp_finco('range_tanggal',$tanggal_arr,$fnc->id_finance_company,[10,20]);
+			$dp_20   = $this->get_penjualan_dp_finco('range_tanggal', $tanggal_arr, $fnc->id_finance_company,[21,100]);
+			$tot_dp = $dp_10+$dp_1020+$dp_20;
+			$tot['10']   += $dp_10;
+			$tot['1020'] += $dp_1020;
+			$tot['20']   += $dp_20;
+			echo '<tr>';
+			// echo '<td>'.$no.'</td>';
+			echo '<td>'.$fnc->finance_company.'</td>';
+			echo '<td>'.$dp_10.' %</td>';
+			echo '<td>'.$dp_1020.' %</td>';
+			echo '<td>'.$dp_20.' %</td>';
+			// echo '<td>'.round($tot_dp).' %</td>';
+			echo '</tr>';
+			$no++;
+		}
+		echo '</tbody>';
+		// echo '<tfoot>';
+		// echo '<tr>';
+		// echo '<td colspan=2>Total</td>';
+		// echo '<td colspan=2>'.$tot['10'].'</td>';
+		// echo '</tr>';
+		// echo '</tfoot>';
+		echo '</table>';	
+	}
+}

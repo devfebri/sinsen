@@ -1,0 +1,1 @@
+<a onclick='return view_modal_purchase_order("<?= $po_id ?>")'><?= $po_id ?></a>

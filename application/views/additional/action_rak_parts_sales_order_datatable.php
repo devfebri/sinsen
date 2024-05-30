@@ -1,0 +1,1 @@
+<button onClick='return pilih_rak_parts(<?= $data ?>, <?= $this->input->post("index") ?>)' data-dismiss='modal' class="btn btn-xs btn-flat btn-success" type="button"><i class="fa fa-check"></button>

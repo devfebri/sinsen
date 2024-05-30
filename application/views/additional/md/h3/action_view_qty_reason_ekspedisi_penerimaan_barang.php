@@ -1,0 +1,1 @@
+<button <?= $proses_claim_ekspedisi == 1 ? 'disabled' : '' ?> onclick='return open_view_reason_ekspedisi(<?= $id ?>)' data-dismiss='modal' class="btn btn-xs btn-flat btn-info" type="button">View</button>

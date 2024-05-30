@@ -1,0 +1,1 @@
+<a href="h3/h3_md_terima_claim_ahm/detail?id_terima_claim_ahm=<?= $id_terima_claim_ahm ?>" class="btn btn-xs btn-flat btn-info">View</a>

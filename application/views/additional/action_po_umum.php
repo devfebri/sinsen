@@ -1,0 +1,1 @@
+<a href="h3/h3_md_po_umum/detail?id_purchase_order=<?= $id_purchase_order ?>" class="btn btn-xs btn-flat btn-info">View</a>

@@ -1,0 +1,1 @@
+<a onclick='return open_view_modal_qty_intransit("<?= $id_part ?>")'><?= $qty_intransit ?></a>

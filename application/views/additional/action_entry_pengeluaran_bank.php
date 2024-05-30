@@ -1,0 +1,1 @@
+<a href="h3/h3_md_entry_pengeluaran_bank/detail?id_entry_pengeluaran_bank=<?= $id_entry_pengeluaran_bank ?>" class="btn btn-xs btn-flat btn-info">View</a>

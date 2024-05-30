@@ -1,0 +1,1 @@
+<span onclick='return open_view_customer("<?= $id_claim_part_ahass ?>")'><?= $customer_diclaim ?> Customer</span>

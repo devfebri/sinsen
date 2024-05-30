@@ -1,0 +1,1153 @@
+<?php
+defined('BASEPATH') or exit('No direct script access allowed');
+
+class Work_order_dealer extends CI_Controller
+{
+
+	var $tables = "tr_h2_wo_dealer";
+	var $folder = "dealer";
+	var $page   = "work_order_dealer";
+	var $title  = "Work Order";
+
+	public function __construct()
+	{
+		parent::__construct();
+		//---- cek session -------//		
+		$name = $this->session->userdata('nama');
+		if ($name == "") {
+			echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "panel'>";
+		}
+
+		//===== Load Database =====
+		$this->load->database();
+		$this->load->helper('url');
+		//===== Load Model =====
+		$this->load->model('m_admin');
+		$this->load->model('m_h2_master', 'm_h2');
+		$this->load->model('m_h2_work_order', 'm_wo');
+		$this->load->model('m_h2_api', 'm_api');
+		$this->load->model('m_h2_billing', 'm_bil');
+		//===== Load Library =====
+		$this->load->library('upload');
+		$this->load->library('form_validation');
+		$this->load->helper('tgl_indo');
+		$this->load->helper('terbilang');
+	}
+	protected function template($data)
+	{
+		$name = $this->session->userdata('nama');
+		if ($name == "") {
+			echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "panel'>";
+		} else {
+			$this->load->view('template/header', $data);
+			$this->load->view('template/aside');
+			$page = $this->page;
+			if (isset($data['mode'])) {
+				if ($data['mode'] == 'insert_wo') $page = 'sa_form';
+				if ($data['mode'] == 'detail_wo') $page = 'sa_form';
+				if ($data['mode'] == 'update_wo') $page = 'sa_form';
+				if ($data['mode'] == 'send') $page = 'sa_form';
+			}
+			$this->load->view($this->folder . "/" . $page);
+			$this->load->view('template/footer');
+		}
+	}
+
+	public function index()
+	{
+		$data['isi']    = $this->page;
+		$data['title']	= $this->title;
+		$data['set']	= "index";
+		// $filter = ['id_work_order_not_null' => 'ya'];
+		// $data['wo'] = $this->m_wo->get_sa_form($filter);
+		$this->template($data);
+	}
+	public function history()
+	{
+		$data['isi']    = $this->page;
+		$data['title']	= $this->title;
+		$data['set']	= "history";
+		$this->template($data);
+	}
+
+	public function add()
+	{
+		$data['isi']     = $this->page;
+		$data['title']   = $this->title;
+		$data['mode']    = 'insert_wo';
+		$data['set']     = "form";
+		$data['pkp'] = dealer()->pkp;
+		$data['estimasi_waktu_daftar'] = gmdate("y-m-d H:i:s", time() + 60 * 60 * 7);
+		$this->template($data);
+	}
+
+	function save_wo()
+	{
+		$waktu              = waktu_full();
+		$tgl                = date("Y-m-d");
+		$login_id           = $this->session->userdata('id_user');
+		$id_dealer          = $this->m_admin->cari_dealer();
+		$post               = $this->input->post();
+		// send_json($post);
+		$id_work_order      = $this->m_wo->get_id_work_order();
+		// $id_antrian         = $post['id_antrian'];
+		// $tipe_coming     = implode($post['tipe_coming'), ','];
+		$id_sa_form         = $post['id_sa_form'];
+		$id_pit             = $post['id_pit'];
+		$id_karyawan_dealer = $post['id_karyawan_dealer'];
+		$tipe_pembayaran    = $post['tipe_pembayaran'];
+
+		$ins_data 		= [
+			'id_work_order'      => $id_work_order,
+			'id_sa_form'         => $id_sa_form,
+			'id_dealer'          => $id_dealer,
+			// 'id_pit'          => $id_pit,
+			'id_karyawan_dealer' => $id_karyawan_dealer,
+			'tipe_pembayaran'    => $tipe_pembayaran,
+			'status'             => 'open',
+			'created_at'         => $waktu,
+			'created_by'         => $login_id,
+			'grand_total'        => round($post['grand_total']),
+			'total_jasa'         => round($post['total_jasa']),
+			'total_part'         => round($post['total_part']),
+			'total_ppn'          => round($post['total_ppn']),
+			'total_tanpa_ppn'    => round($post['total_tanpa_ppn']),
+		];
+		if ($post['grand_total'] == 0) {
+			$rsp = [
+				'status' => 'error',
+				'pesan' => 'Grand Total Kosong !'
+			];
+			send_json($rsp);
+		}
+		$upd_sa_form = [
+			'status_form' => 'closed',
+			'job_return' => $post['job_return'],
+			'motor_ditinggal' => $post['motor_ditinggal'],
+			'closed_at'   => $waktu,
+			'id_pit'      => $id_pit,
+			'closed_by'   => $login_id
+		];
+
+		$details = $this->input->post('details');
+	
+		foreach ($details as $keys => $val) {
+			if ($val['masukkan_wo'] == 'true') {
+				$id_promo = $val['id_promo'] != '' ? $val['id_promo'] : null;
+				$disc_amount     = 0;
+				$disc_percentage = 0;
+				$diskon_real = 0;
+
+				if ($id_promo != NULL) {
+					$filter_diskon = [
+						'id_dealer' => $id_dealer,
+						'id_jasa' => $val['id_jasa'],
+						'id_promo' => $id_promo
+					];
+					$diskon = $this->m_wo->getPromoServis($filter_diskon);
+					if ($diskon->num_rows() > 0) {
+						$diskon = $diskon->row();
+						if ($diskon->tipe_diskon == 'rupiah') {
+							$disc_amount   = $diskon_real = $diskon->diskon;
+						} elseif ($diskon->tipe_diskon == 'persen') {
+							$disc_percentage = $diskon->diskon;
+							$diskon_real = $val['harga'] * round($disc_percentage / 100);
+						}
+					}
+				}
+				$subtotal = $val['harga'] - $diskon_real;
+				$ins_details[$keys] = [
+					'id_work_order'   => $id_work_order,
+					'id_jasa'         => $val['id_jasa'],
+					'harga'           => $val['harga'],
+					'waktu'           => $val['waktu'],
+					'tipe_motor'      => $val['tipe_motor'],
+					'need_parts'      => substr($val['need_parts'], 0, 1),
+					'id_promo'        => $id_promo,
+					'pekerjaan_luar'  => $val['pekerjaan_luar'],
+					'id_tipe_servis'  => $val['id_tipe_servis'],
+					'disc_amount'     => $disc_amount,
+					'diskon_value'     => $disc_amount,
+					'disc_percentage' => $disc_percentage,
+					'subtotal'        => $subtotal,
+					'frt_claim'      => $val['frt_claim']   == '' ? 0 : $val['frt_claim'],
+					'labour_cost'    => $val['labour_cost'] == '' ? 0 : $val['labour_cost']
+				];
+				if (strtolower($val['need_parts']) == 'yes' || strtolower($val['need_parts']) == 'y' || strtolower($val['need_parts']) == 1) {
+					foreach ($val['parts'] as $ky => $prt) {
+						$part = $this->db->get_where('ms_part', ['id_part' => $prt['id_part']])->row();
+						$harga = $part->harga_dealer_user;
+						if ($val['id_type'] == 'C1' || $val['id_type'] == 'C2') {
+							$harga = round($part->harga_dealer_user / 1.1);
+						}
+						$ppn = round($harga * 0.1);
+						$subtotal = subtotal_part($prt, $harga);
+						$diskon_value = $prt['diskon_value'] == '' ? 0 : $prt['diskon_value'];
+						$send_notif = 1;
+						if ($prt['send_notif'] == '' || $prt['send_notif'] == 0) {
+							$send_notif = 0;
+						}
+						$ins_parts[] = [
+							'id_work_order' => $id_work_order,
+							'id_jasa'       => $val['id_jasa'],
+							'id_part_int' => $part->id_part_int,
+							'id_part'       => $prt['id_part'],
+							'qty'           => $prt['qty'],
+							'id_gudang'     => $prt['id_gudang'],
+							'id_rak'        => $prt['id_rak'],
+							'jenis_order'   => $prt['jenis_order'],
+							'tipe_diskon'   => $prt['tipe_diskon'],
+							'diskon_value'  => $diskon_value,
+							'id_promo'      => $prt['id_promo'],
+							'harga'         => $harga,
+							'ppn'           => $ppn,
+							'subtotal'      => $subtotal,
+							'order_to'      => $prt['order_to'] == '' ? 0 : $prt['order_to'],
+							'send_notif'    => $send_notif,
+							'id_booking'    => $prt['id_booking'],
+							'part_utama'    => $prt['part_utama'],
+						];
+					}
+				}
+			}
+		}
+		if (empty($ins_details)) {
+			$rsp = [
+				'status' => 'error',
+				'pesan' => 'Pekerjaan untuk work order belum ditentukan !'
+			];
+			echo json_encode($rsp);
+			exit();
+		}
+		// $tes = ['ins_data' => $ins_data, 'ins_details' => $ins_details, 'ins_parts' => isset($ins_parts) ? $ins_parts : '', 'upd_sa_form' => $upd_sa_form];
+		// send_json($tes);
+		$this->db->trans_begin();
+		$this->db->insert('tr_h2_wo_dealer', $ins_data);
+		$this->db->update('tr_h2_sa_form', $upd_sa_form, ['id_sa_form' => $id_sa_form]);
+		if (isset($ins_parts)) {
+			$this->db->insert_batch('tr_h2_wo_dealer_parts', $ins_parts);
+		}
+		if (isset($ins_details)) {
+			$this->db->insert_batch('tr_h2_wo_dealer_pekerjaan', $ins_details);
+		}
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			$rsp = [
+				'status' => 'error',
+				'pesan' => ' Something went wrong'
+			];
+		} else {
+			$this->db->trans_commit();
+			$rsp = [
+				'status' => 'sukses',
+				'link' => base_url('dealer/work_order_dealer')
+			];
+			$_SESSION['pesan'] 	= "Sukses membuat work order";
+			$_SESSION['tipe'] 	= "success";
+			// echo "<meta http-equiv='refresh' content='0; url=".base_url()."dealer/mutasi_stok/add'>";
+		}
+		echo json_encode($rsp);
+	}
+
+	function getDataWO()
+	{
+		$filter['id_sa_form'] = $this->input->post('id_sa_form');
+		if (isset($_POST['id_dealer'])) {
+			if ($_POST['id_dealer'] != '') {
+				$filter['id_dealer'] = $this->input->post('id_dealer');
+			}
+		}
+		$mode                 = isset($_POST['mode']) ? $_POST['mode'] : '';
+		// send_json($filter);
+		$sa_form              = $this->m_wo->get_sa_form($filter);
+		// send_json($sa_form->row());
+		if ($sa_form->num_rows() > 0) {
+			$sa = $sa_form->row();
+			// echo json_encode($sa);
+			// die();
+			$filter   = ['id_customer' => $sa->id_customer];
+			$customer = $this->m_api->getCustomerH23($filter)->row();
+			if ($sa->id_pembawa != '') {
+				$filter = ['id_pembawa' => $sa->id_pembawa];
+				$pembawa  = $this->m_api->getPembawa($filter)->row();
+			} else {
+				$pembawa = $customer;
+			}
+		} else {
+			$result = ['status' => 'error', 'pesan' => 'Data tidak ditemukan !'];
+			echo json_encode($result);
+			die();
+		}
+		// send_json($sa);
+		if ($sa->id_work_order != null) {
+			$filter_wo['id_work_order'] = $sa->id_work_order;
+			if ($mode == 'insert_surat_jalan') {
+				$filter_wo['surat_jalan_null'] = 'ya';
+				$filter_wo['pekerjaan_luar']   = 1;
+			}
+			$details = $this->m_h2->wo_detail($filter_wo);
+		} else {
+			$filter = ['id_sa_form' => $sa->id_sa_form];
+			$details = $this->m_wo->sa_form_detail($filter);
+		}
+		$cek_srbu = $this->m_h2->cekSRBU($customer->no_mesin);
+		$result = [
+			'status' => 'sukses',
+			'sa' => $sa,
+			'customer' => $customer,
+			'pembawa' => $pembawa,
+			'tipe_coming' => explode(',', $sa->tipe_coming),
+			'details' => $details,
+			'srbu'     => $cek_srbu
+
+		];
+		send_json($result);
+	}
+
+	public function detail()
+	{
+		$data['isi']   = $this->page;
+		$data['title'] = 'Detail Work Order';
+		$data['mode']  = 'detail_wo';
+		$data['set']   = "form";
+		$id_work_order    = $this->input->get('id');
+
+		$filter['id_work_order'] = $id_work_order;
+		$sa_form = $this->m_wo->get_sa_form($filter);
+		if ($sa_form->num_rows() > 0) {
+			$row                     = $data['row_wo'] = $sa_form->row();
+			$data['tipe_coming']     = explode(',', $row->tipe_coming);
+			$data['pkp'] = $row->pkp;
+			$data['estimasi_waktu_daftar'] = $row->estimasi_waktu_daftar;
+			// $filter['id_work_order'] = $id_work_order;
+			// $data['details']         = $this->m_h2->wo_detail($filter);
+			// send_json($data);
+			$this->template($data);
+		} else {
+			$_SESSION['pesan'] 	= "Data not found !";
+			$_SESSION['tipe'] 	= "danger";
+			echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/work_order_dealer'>";
+		}
+	}
+
+	public function cetak()
+	{
+		$get = $this->input->get();
+		$tgl        = gmdate("y-m-d", time() + 60 * 60 * 7);
+		$waktu      = gmdate("y-m-d H:i:s", time() + 60 * 60 * 7);
+		$login_id   = $this->session->userdata('id_user');
+		$id_sa_form = $this->input->get('id');
+		$filter['id_sa_form'] = $id_sa_form;
+		$get_data = $this->m_wo->get_sa_form($filter);
+		if ($get_data->num_rows() > 0) {
+			$row = $data['row'] = $get_data->row();
+			$upd = [
+				'cetak_sa_form_ke' => $row->cetak_sa_form_ke + 1,
+				'cetak_sa_form_at' => $waktu,
+				'cetak_sa_form_by' => $login_id,
+			];
+			// $this->db->update('tr_h2_sa_form', $upd, ['id_sa_form' => $id_sa_form]);
+			$this->load->library('mpdf_l');
+			$mpdf                           = $this->mpdf_l->load();
+			$mpdf->allow_charset_conversion = true;  // Set by default to TRUE
+			$mpdf->charset_in               = 'UTF-8';
+			$mpdf->autoLangToFont           = true;
+
+			$data['set'] = 'print';
+			$data['judul_laporan'] = 'PERINTAH KERJA BENGKEL';
+			$data['row'] = $row;
+			$filter_pekerjaan['id_work_order'] = $row->id_work_order;
+			$data['pekerjaan'] = $this->m_h2->getPekerjaanWO($filter_pekerjaan)->result();
+			$filter_part['id_work_order'] = $row->id_work_order;
+			$filter_part['select'] = 'wo_parts';
+			$data['parts'] = $this->m_wo->getWOParts($filter_part)->result();
+			$filter = [
+				'group_by_no_nsc' => true,
+				'id_work_order' => $row->id_work_order
+			];
+			$data['estimasi_biaya'] = $row->grand_total;
+			$filter_sa = [
+				'id_customer' => $row->id_customer,
+				'except_wo' => $row->id_work_order
+			];
+			$last_wo = $this->m_wo->get_sa_form($filter_sa);
+			if ($last_wo->num_rows() > 0) {
+				$data['last_wo'] = $last_wo->row();
+				// send_json($data);
+			}
+			if (isset($get['tes'])) {
+				send_json($data);
+			}
+			$html = $this->load->view('dealer/sa_form_cetak', $data, true);
+			// render the view into HTML
+			$mpdf->WriteHTML($html);
+			// write the HTML into the mpdf
+			$output = 'cetak_work_order.pdf';
+			$mpdf->Output("$output", 'I');
+		} else {
+			echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/work_order_dealer'>";
+		}
+	}
+	public function cetak_dengan_harga()
+	{
+		$get = $this->input->get();
+		$tgl        = gmdate("y-m-d", time() + 60 * 60 * 7);
+		$waktu      = gmdate("y-m-d H:i:s", time() + 60 * 60 * 7);
+		$login_id   = $this->session->userdata('id_user');
+		$id_sa_form = $this->input->get('id');
+		$filter['id_sa_form'] = $id_sa_form;
+		$get_data = $this->m_wo->get_sa_form($filter);
+		if ($get_data->num_rows() > 0) {
+			$row = $data['row'] = $get_data->row();
+			$upd = [
+				'cetak_sa_form_ke' => $row->cetak_sa_form_ke + 1,
+				'cetak_sa_form_at' => $waktu,
+				'cetak_sa_form_by' => $login_id,
+			];
+			// $this->db->update('tr_h2_sa_form', $upd, ['id_sa_form' => $id_sa_form]);
+			$this->load->library('mpdf_l');
+			$mpdf                           = $this->mpdf_l->load();
+			$mpdf->allow_charset_conversion = true;  // Set by default to TRUE
+			$mpdf->charset_in               = 'UTF-8';
+			$mpdf->autoLangToFont           = true;
+
+			$data['set'] = 'cetak_pkb_dengan_harga';
+			$data['judul_laporan'] = 'PERINTAH KERJA BENGKEL';
+			$data['row'] = $row;
+			$filter_pekerjaan['id_work_order'] = $row->id_work_order;
+			$data['pekerjaan'] = $this->m_h2->getPekerjaanWO($filter_pekerjaan)->result();
+			$filter_part['id_work_order'] = $row->id_work_order;
+			$filter_part['select'] = 'wo_parts';
+			$data['parts'] = $this->m_wo->getWOParts($filter_part)->result();
+
+			$data['estimasi_biaya'] = $row->grand_total;
+			$filter_sa = [
+				'id_customer' => $row->id_customer,
+				'except_wo' => $row->id_work_order
+			];
+			$last_wo = $this->m_wo->get_sa_form($filter_sa);
+			if ($last_wo->num_rows() > 0) {
+				$data['last_wo'] = $last_wo->row();
+				// send_json($data);
+			}
+			if (isset($get['tes'])) {
+				send_json($data);
+			}
+			$html = $this->load->view('dealer/sa_form_cetak', $data, true);
+			// render the view into HTML
+			$mpdf->WriteHTML($html);
+			// write the HTML into the mpdf
+			$output = 'cetak_work_order.pdf';
+			$mpdf->Output("$output", 'I');
+		} else {
+			echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/work_order_dealer'>";
+		}
+	}
+
+	function get_select_sa_form()
+	{
+		$id_dealer  = $this->m_admin->cari_dealer();
+
+		$where = "WHERE tr_h2_sa_form.id_dealer='$id_dealer' AND status_form='open'";
+		if (isset($_POST['searchTerm'])) {
+			$search = $_POST['searchTerm'];
+			$where .= "AND id_sa_form LIKE '%$search%'";
+		}
+		$rs = $this->db->query("SELECT id_sa_form AS id,id_sa_form AS text 
+				FROM tr_h2_sa_form $where
+				");
+		foreach ($rs->result() as $rs) {
+			//Cek Kebutuhan Parts HLO
+			$filter = ['id_sa_form' => $rs->id, 'jenis_order' => 'HLO'];
+			$cek_jenis_hlo = $this->m_h2->getSANeedParts($filter);
+			if ($cek_jenis_hlo > 0) {
+				$filter['send_notif'] = 1;
+				$cek_hlo_send = $this->m_h2->getSANeedParts($filter);
+				if ($cek_hlo_send > 0) {
+					$result[] = $rs;
+				}
+				// $result[] = $rs;
+			} else {
+				$result[] = $rs;
+			}
+		}
+		echo json_encode($result);
+	}
+
+	function get_select_pit()
+	{
+		$id_dealer  = $this->m_admin->cari_dealer();
+
+		$where = "WHERE ms_h2_pit.id_dealer='$id_dealer'";
+		if (isset($_POST['searchTerm'])) {
+			$search = $_POST['searchTerm'];
+			$where .= "AND id_pit LIKE '%$search%'";
+		}
+		$rs = $this->db->query("SELECT id_pit AS id, CONCAT(id_pit,' | ',jenis_pit) AS text 
+				FROM ms_h2_pit $where
+			  ");
+		echo json_encode($rs->result());
+	}
+	function get_sel_mekanik_ready()
+	{
+		$tanggal   = gmdate("Y-m-d", time() + 60 * 60 * 7);
+		$id_dealer = $this->m_admin->cari_dealer();
+		$id_pit    = $this->input->post('id_pit');
+
+		$where = "WHERE mkd.id_dealer='$id_dealer' AND mpm.id_pit='$id_pit'";
+		if (isset($_POST['searchTerm'])) {
+			$search = $_POST['searchTerm'];
+			$where .= " AND (nama_lengkap LIKE '%$search%'
+							OR mpm.id_karyawan_dealer LIKE '%$search%'
+						   )
+					  ";
+		}
+
+		//Cek Absensi
+		$where .= "AND mpm.id_karyawan_dealer IN(SELECT id_karyawan_dealer 
+					FROM tr_h2_absen_mekanik_detail AS tamd
+					JOIN tr_h2_absen_mekanik AS tam ON tam.id_absen=tamd.id_absen
+					WHERE id_karyawan_dealer=mpm.id_karyawan_dealer
+					AND tam.tanggal='$tanggal' AND tamd.aktif=1
+					)";
+
+		$where .= "AND mpm.id_karyawan_dealer NOT IN(SELECT id_karyawan_dealer FROM tr_h2_wo_dealer wo WHERE id_karyawan_dealer=mpm.id_karyawan_dealer AND wo.status='open' AND (SELECT COUNT(id) FROM tr_h2_wo_dealer_waktu WHERE id_work_order=wo.id_work_order AND stats='end')=0)";
+
+		$rs = $this->db->query("SELECT mpm.id_karyawan_dealer AS id, CONCAT(mpm.id_karyawan_dealer,' | ',nama_lengkap) AS text 
+				FROM ms_h2_pit_mekanik AS mpm
+				JOIN ms_karyawan_dealer mkd ON mkd.id_karyawan_dealer=mpm.id_karyawan_dealer
+				$where
+			  ");
+
+		echo json_encode($rs->result());
+	}
+
+	public function update()
+	{
+		$data['isi']   = $this->page;
+		$data['title'] = 'Update Work Order';
+		$data['mode']  = 'update_wo';
+		$data['set']   = "form";
+		$id_work_order = $this->input->get('id');
+
+		$filter['id_work_order'] = $id_work_order;
+		$filter['last_stats_not'] = 'end';
+		$sa_form = $this->m_wo->get_sa_form($filter);
+		if ($sa_form->num_rows() > 0) {
+			$row                 = $data['row_wo'] = $sa_form->row();
+			$data['tipe_coming'] = explode(',', $row->tipe_coming);
+			$data['pkp']         = $row->pkp;
+
+			$data['estimasi_waktu_daftar'] = $row->estimasi_waktu_daftar;
+			// send_json($data);
+			$this->template($data);
+		} else {
+			$_SESSION['pesan']   = "Data not found !";
+			$_SESSION['tipe']   = "danger";
+			echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/work_order_dealer'>";
+		}
+	}
+
+	function save_update_wo()
+	{
+		$waktu         = waktu_full();
+		$tgl           = date("Y-m-d");
+		$login_id      = $this->session->userdata('id_user');
+		$id_work_order = $this->input->post('id_work_order');
+		$details       = $this->input->post('details');
+		$post          = $this->input->post();
+		$id_dealer     = dealer()->id_dealer;
+		// send_json($details);
+		foreach ($details as $keys => $val) {
+			if (isset($val['update'])) {
+				$id_promo = $val['id_promo'] != '' ? $val['id_promo'] : null;
+				$disc_amount     = 0;
+				$disc_percentage = 0;
+				$diskon_real = 0;
+				if (!isset($val['pekerjaan_batal'])) {
+					$val['pekerjaan_batal'] = 0;
+				}
+				if ($id_promo != NULL) {
+					$filter_diskon = [
+						'id_dealer' => $id_dealer,
+						'id_jasa' => $val['id_jasa'],
+						'id_promo' => $id_promo
+					];
+					$diskon = $this->m_wo->getPromoServis($filter_diskon);
+					if ($diskon->num_rows() > 0) {
+						$diskon = $diskon->row();
+						if ($diskon->tipe_diskon == 'rupiah') {
+							$disc_amount   = $diskon_real = $diskon->diskon;
+						} elseif ($diskon->tipe_diskon == 'persen') {
+							$disc_percentage = $diskon->diskon;
+							$diskon_real = $val['harga'] * round($disc_percentage / 100);
+						}
+					}
+				}
+				$subtotal = $val['harga'] - $diskon_real;
+				$ins_details[$keys] = [
+					'id_work_order'   => $id_work_order,
+					'id_jasa'         => $val['jasa'],
+					'harga'           => $val['harga'],
+					'waktu'           => $val['waktu'],
+					'pekerjaan_luar'  => $val['pekerjaan_luar'] == '' ? 0 : 1,
+					'id_tipe_servis'  => $val['id_tipe_servis'],
+					'need_parts'      => substr($val['need_parts'], 0, 1),
+					'tambahan'        => 1,
+					'disc_amount'     => $disc_amount,
+					'diskon_value'     => $disc_amount,
+					'disc_percentage' => $disc_percentage,
+					'subtotal'        => $subtotal,
+				];
+				if (strtolower($val['need_parts']) == 'yes'  || strtolower($val['need_parts']) == 'y' || strtolower($val['need_parts']) == 1) {
+					foreach ($val['parts'] as $ky => $prt) {
+						$part = $this->db->get_where('ms_part', ['id_part' => $prt['id_part']])->row();
+						$harga = $part->harga_dealer_user;
+						$ppn = round($harga * 0.1);
+						$subtotal = subtotal_part($prt, $harga);
+						$ins_parts[] = [
+							'id_work_order' => $id_work_order,
+							'id_jasa'       => $val['jasa'],
+							'id_part_int'       => $part->id_part_int,
+							'id_part'       => $prt['id_part'],
+							'qty'           => $prt['qty'],
+							'ppn'           => $ppn,
+							'subtotal'      => $subtotal,
+							'id_promo'      => isset($prt['id_promo']) ? $prt['id_promo']        : null,
+							'id_booking' => NULL,
+							'id_kirim_part' => NULL,
+							'diskon_value'  => isset($prt['diskon_value']) ? $prt['diskon_value'] : 0,
+							'tipe_diskon'   => isset($prt['tipe_diskon']) ? $prt['tipe_diskon']  : null,
+							'nomor_ps' => NULL,
+							'nomor_so' => NULL,
+							'part_utama'   => isset($prts['part_utama']) ? $prts['part_utama']  : null,
+							'id_gudang'     => isset($prt['id_gudang']) ? $prt['id_gudang']      : '',
+							'id_rak'        => isset($prt['id_rak']) ? $prt['id_rak']            : '',
+							'send_notif' => 0,
+							'sudah_terbuat_picking_slip' => 0,
+							'jenis_order'   => $prt['jenis_order'],
+							'harga'         => $part->harga_dealer_user,
+							'tambahan'      => 1,
+							'order_to'      => $prt['order_to'] == '' ? 0 : $prt['order_to'],
+							'pekerjaan_batal'  => $val['pekerjaan_batal'],
+						];
+					}
+				}
+			} else {
+				$upd_batal[] = [
+					'id_jasa' => $val['id_jasa'],
+					'pekerjaan_batal' => $val['pekerjaan_batal']
+				];
+				$del_part[] = $val['id_jasa'];
+				if (isset($val['parts'])) {
+					foreach ($val['parts'] as $prts) {
+						$f = [
+							'id_work_order' => $id_work_order,
+							'id_part' => $prts['id_part'],
+							'id_jasa' => $val['id_jasa'],
+							'join' => 'picking_slip',
+							'select' => 'picking_slip',
+						];
+						$cek_part_wo = $this->m_wo->getWOParts($f);
+						if ($cek_part_wo->num_rows() > 0) {
+							$get_part = $this->db->get_where('ms_part', ['id_part' => $prts['id_part']])->row();
+							$harga = $prts['harga'];
+							$ppn = round($harga * 0.1);
+							$subtotal = subtotal_part($prts, $harga);
+							$ins_parts[] = [
+								'id_part_int' => $get_part->id_part_int,
+								'id_work_order' => $id_work_order,
+								'id_jasa'       => $val['jasa'],
+								'id_part'       => $prts['id_part'],
+								'qty'           => $prts['qty'],
+								'ppn'           => $ppn,
+								'subtotal'      => $subtotal,
+								'id_promo'      => isset($prts['id_promo']) ? $prts['id_promo']        : null,
+								'id_booking'      => isset($prts['id_booking']) ? $prts['id_booking']        : null,
+								'id_kirim_part'      => isset($prts['id_kirim_part']) ? $prts['id_kirim_part']        : null,
+								'diskon_value'  => isset($prts['diskon_value']) ? $prts['diskon_value'] : 0,
+								'tipe_diskon'   => isset($prts['tipe_diskon']) ? $prts['tipe_diskon']  : null,
+								'nomor_so'   => isset($prts['nomor_so']) ? $prts['nomor_so']  : null,
+								'part_utama'   => isset($prts['part_utama']) ? $prts['part_utama']  : null,
+								'id_gudang'     => isset($prts['id_gudang']) ? $prts['id_gudang']      : '',
+								'id_rak'        => isset($prts['id_rak']) ? $prts['id_rak']            : '',
+								'send_notif'        => isset($prts['send_notif']) ? $prts['send_notif'] : 0,
+								'sudah_terbuat_picking_slip'        => isset($prts['sudah_terbuat_picking_slip']) ? $prts['sudah_terbuat_picking_slip']            : 0,
+								'jenis_order'   => $prts['jenis_order'],
+								'harga'         => $harga,
+								'tambahan'      => 0,
+								'order_to'      => $prts['order_to'] == '' ? 0 : $prts['order_to'],
+								'pekerjaan_batal'       => $val['pekerjaan_batal'],
+							];
+						} else {
+							$part = $this->db->get_where('ms_part', ['id_part' => $prts['id_part']])->row();
+							$harga = $part->harga_dealer_user;
+							$ppn = round($harga * 0.1);
+							$subtotal = subtotal_part($prts, $harga);
+							$ins_parts[] = [
+								'id_part_int' => $part->id_part_int,
+								'id_work_order' => $id_work_order,
+								'id_jasa'       => $val['jasa'],
+								'id_part'       => $prts['id_part'],
+								'qty'           => $prts['qty'],
+								'ppn'           => $ppn,
+								'subtotal'      => $subtotal,
+								'id_promo'      => isset($prts['id_promo']) ? $prts['id_promo'] : null,
+								'id_booking' => NULL,
+								'id_kirim_part' => NULL,
+								'diskon_value'  => isset($prts['diskon_value']) ? $prts['diskon_value'] : 0,
+								'tipe_diskon'   => isset($prts['tipe_diskon']) ? $prts['tipe_diskon']  : null,
+								'nomor_so' => NULL,
+								'part_utama'   => isset($prts['part_utama']) ? $prts['part_utama']  : null,
+								'id_gudang'     => isset($prts['id_gudang']) ? $prts['id_gudang'] : '',
+								'id_rak'        => isset($prts['id_rak']) ? $prts['id_rak'] : '',
+								'send_notif'                 => 0,
+								'sudah_terbuat_picking_slip' => 0,
+								'jenis_order'                => $prts['jenis_order'],
+								'harga'                      => $part->harga_dealer_user,
+								'tambahan'                   => 1,
+								'order_to'      => $prts['order_to'] == '' ? 0 : $prts['order_to'],
+								'pekerjaan_batal'            => $val['pekerjaan_batal'],
+							];
+						}
+					}
+				}
+			}
+		}
+		$upd_wo = [
+			'grand_total'     => round($post['grand_total']),
+			'total_jasa'      => round($post['total_jasa']),
+			'total_part'      => round($post['total_part']),
+			'total_ppn'       => round($post['total_ppn']),
+			'total_tanpa_ppn' => round($post['total_tanpa_ppn']),
+			'updated_at'      => waktu_full(),
+			'updated_by'      => user()->id_user,
+		];
+		if ($post['grand_total'] == 0) {
+			$rsp = [
+				'status' => 'error',
+				'pesan' => 'Grand Total Kosong !'
+			];
+			send_json($rsp);
+		}
+		// if (empty($ins_details)) {
+		// 	$rsp = [
+		// 		'status' => 'error',
+		// 		'pesan' => 'Pekerjaan tambahan untuk work order belum ditentukan !'
+		// 	];
+		// 	echo json_encode($rsp);
+		// 	exit();
+		// }
+		// $result = [
+		// 	'upd' => $upd_wo,
+		// 	'ins_details' => isset($ins_details) ? $ins_details : '',
+		// 	'ins_parts' => isset($ins_parts) ? $ins_parts : '',
+		// 	'del_part' => isset($del_part) ? $del_part : ''
+		// ];
+		// send_json($result);
+		$this->db->trans_begin();
+		$this->db->update('tr_h2_wo_dealer', $upd_wo, ['id_work_order' => $post['id_work_order']]);
+		if (isset($del_part)) {
+			$cond = [
+				'id_work_order' => $id_work_order,
+			];
+			$this->db->where_in('id_jasa', $del_part);
+			$this->db->delete('tr_h2_wo_dealer_parts', $cond);
+		}
+		if (isset($ins_parts)) {
+			// send_json($ins_parts);
+			$this->db->insert_batch('tr_h2_wo_dealer_parts', $ins_parts);
+		}
+		if (isset($ins_details)) {
+			$this->db->insert_batch('tr_h2_wo_dealer_pekerjaan', $ins_details);
+		}
+		if (isset($upd_batal)) {
+			$this->db->where('id_work_order', $id_work_order);
+			$this->db->update_batch('tr_h2_wo_dealer_pekerjaan', $upd_batal, 'id_jasa');
+
+			$this->db->where('id_work_order', $id_work_order);
+			$this->db->update_batch('tr_h2_wo_dealer_parts', $upd_batal, 'id_jasa');
+		}
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			$rsp = [
+				'status' => 'error',
+				'pesan' => ' Something went wrong'
+			];
+		} else {
+			$this->db->trans_commit();
+			$rsp = [
+				'status' => 'sukses',
+				'link' => base_url('dealer/work_order_dealer')
+			];
+			$_SESSION['pesan'] 	= "Data berhasil diubah";
+			$_SESSION['tipe'] 	= "success";
+			// echo "<meta http-equiv='refresh' content='0; url=".base_url()."dealer/mutasi_stok/add'>";
+		}
+		echo json_encode($rsp);
+	}
+
+	public function fetch()
+	{
+		$fetch_data = $this->make_query();
+		$data = array();
+		foreach ($fetch_data as $rs) {
+			$sub_array = array();
+			$status = '';
+			$button = '';
+			$btn_closed = '<a href="dealer/work_order_dealer/closed_wo?id=' . $rs->id_work_order . '" onclick="return confirm(\'Apakah Anda yakin ? \')" class="btn btn-warning btn-xs btn-flat">Closed</a>';
+			$btn_print = '<a style="margin-right:1px" href="dealer/work_order_dealer/cetak?id=' . $rs->id_sa_form . '" class="btn btn-success btn-xs btn-flat">Cetak</a>';
+			$btn_cetak_dengan_harga = '<a style="margin-top:1px;margin-right:1px" href="dealer/work_order_dealer/cetak_dengan_harga?id=' . $rs->id_sa_form . '" class="btn btn-success btn-xs btn-flat">Cetak Dengan Harga</a>';
+			$btn_update = '<a style="margin-top:1px" href="dealer/work_order_dealer/update?id=' . $rs->id_work_order . '" class="btn btn-info btn-xs btn-flat">Update WO</a>';
+			$btn_notif = '<a style="margin-top:1px" href="dealer/work_order_dealer/send_notif?id=' . $rs->id_sa_form . '" class="btn btn-info btn-xs btn-flat">Notify Part Counter</a>';
+
+			if (can_access($this->page, 'can_print'))  $button .= $btn_print . ' ' . $btn_cetak_dengan_harga;
+			if ($rs->status_wo == 'open') {
+				if (can_access($this->page, 'can_update')) $button .= $btn_update;
+				$filter = ['id_sa_form' => $rs->id_sa_form, 'jenis_order' => 'HLO', 'send_notif' => 0];
+				$cek_hlo = $this->m_wo->getWONeedParts($filter);
+				if ($cek_hlo > 0) {
+					if (can_access($this->page, 'can_update')) $button .= $btn_notif;
+				}
+				if ($rs->last_stats == 'start' || $rs->last_stats == 'resume') {
+					$status = '<label class="label label-info">Working</label>';
+				} elseif ($rs->last_stats == null) {
+					$status = '<label class="label label-primary">Open</label>';
+				} elseif ($rs->last_stats == 'end') {
+					$status = '<label class="label label-success">End</label></br>
+					<label class="label label-success">Ready To Bill</label>';
+					$button = '';
+				}
+			} elseif ($rs->status_wo == 'pause') {
+				if (can_access($this->page, 'can_update')) $button .= $btn_update;
+				$status = '<label class="label label-warning">Pause</label>';
+				if ($rs->last_stats == 'end') {
+					$status = '<label class="label label-success">End</label></br>
+					<label class="label label-success">Ready To Bill</label>';
+					$button = '';
+				}
+			} elseif ($rs->status_wo == 'closed') {
+				$status = '<label class="label label-warning">Closed</label>';
+			} elseif ($rs->status_wo == 'canceled') {
+				$status = '<label class="label label-danger">Canceled</label>';
+			} elseif ($rs->status_wo == 'pending') {
+				$status = '<label class="label label-danger">Pending</label>';
+			}
+
+			$sub_array[] = '<a href="dealer/work_order_dealer/detail?id=' . $rs->id_work_order . '">' . $rs->id_work_order . '</a>';
+			if (isset($_POST['history'])) {
+				if (can_access($this->page, 'can_print')) $button = $btn_print;
+			}
+			$sub_array[] = $rs->id_sa_form;
+			$sub_array[] = $rs->tgl_servis;
+			$sub_array[] = $rs->jenis_customer;
+			$sub_array[] = $rs->no_polisi;
+			$sub_array[] = $rs->nama_customer;
+			$sub_array[] = $rs->no_mesin;
+			$sub_array[] = $rs->no_rangka;
+			$sub_array[] = $rs->tipe_ahm;
+			$sub_array[] = $rs->warna;
+			$sub_array[] = $rs->tahun_produksi;
+			$sub_array[] = $status;
+			$sub_array[] = $button;
+			$data[]      = $sub_array;
+		}
+		$output = array(
+			"draw"            =>     intval($_POST["draw"]),
+			"recordsFiltered" =>     $this->make_query(true),
+			"data"            =>     $data
+		);
+		echo json_encode($output);
+	}
+
+	public function make_query($recordsFiltered = null)
+	{
+		$start        = $this->input->post('start');
+		$length       = $this->input->post('length');
+		$limit        = "LIMIT $start, $length";
+
+		if ($recordsFiltered == true) $limit = '';
+
+
+		$filter = [
+			'limit'  => $limit,
+			'order'  => isset($_POST['order']) ? $_POST['order'] : '',
+			'search' => $this->input->post('search')['value'],
+			'id_work_order_not_null' => 'y',
+		];
+		if (isset($_POST['history'])) {
+			$filter['order_column'] = 'history';
+		}
+		if (isset($_POST['status_wo'])) {
+			$filter['status_wo'] = $this->input->post('status_wo');
+		}
+		if ($recordsFiltered == true) {
+			return $this->m_wo->get_sa_form($filter)->num_rows();
+		} else {
+			return $this->m_wo->get_sa_form($filter)->result();
+		}
+	}
+
+	public function send_notif()
+	{
+		$data['isi']   = $this->page;
+		$data['title'] = 'Notify Parts Counter For Required Parts';
+		$data['mode']  = 'send';
+		$data['set']   = "send_notif";
+		$id_sa_form    = $this->input->get('id');
+
+		$filter['id_sa_form'] = $id_sa_form;
+		$sa_form = $this->m_wo->get_sa_form($filter);
+		if ($sa_form->num_rows() > 0) {
+			$data['row']           = $sa_form->row();
+			$filter['jenis_order'] = 'HLO';
+			$filter['send_notif']  = 0;
+			$filter['group_by_order_to'] = true;
+			$order_to = $this->m_wo->getWOParts($filter)->result();
+			$id_parts = [];
+			foreach ($order_to as  $ord) {
+				$filter['group_by_order_to'] = false;
+				$filter['order_to'] = $ord->order_to;
+				$parts = $this->m_wo->getWOParts($filter)->result();
+				$parts_order[] = [
+					'order_to' => $ord->order_to,
+					'order_to_name' => $ord->order_to_name,
+					'parts' => $parts
+				];
+				foreach ($parts as $prt) {
+					$id_parts[] = $prt->id_part;
+				}
+			}
+			$data['id_parts'] = $id_parts;
+			$data['parts_order'] = $parts_order;
+			// send_json($data);
+			// $data['id_parts'][] = '0005ZKWWA00';
+			$this->template($data);
+		} else {
+			$_SESSION['pesan'] 	= "Data not found !";
+			$_SESSION['tipe'] 	= "danger";
+			echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/work_order_dealer'>";
+		}
+	}
+	function create_cetak()
+	{
+		$id = $this->input->get('id');
+		$params = [
+			'id_user' => 0,
+			'id_sa_form' => $id,
+			'save_server' => true
+		];
+		$cetak = $this->m_wo->cetak_wo($params);
+	}
+
+	public function fetchHistory()
+	{
+		$fetch_data = $this->make_query_history();
+		$data = array();
+		foreach ($fetch_data as $rs) {
+			$sub_array = array();
+			$status = '';
+			$button = '';
+			$btn_print = '<a style="margin-right:1px" href="dealer/work_order_dealer/cetak?id=' . $rs->id_sa_form . '" class="btn btn-success btn-xs btn-flat">Cetak</a>';
+			$btn_cetak_dengan_harga = '<a style="margin-top:1px;margin-right:1px" href="dealer/work_order_dealer/cetak_dengan_harga?id=' . $rs->id_sa_form . '" class="btn btn-success btn-xs btn-flat">Cetak Dengan Harga</a>';
+
+			$status = '<label class="label label-warning">Closed</label>';
+			$sub_array[] = '<a href="dealer/work_order_dealer/detail?id=' . $rs->id_work_order . '">' . $rs->id_work_order . '</a>';
+			if (isset($_POST['history'])) {
+				if (can_access($this->page, 'can_print')) $button = $btn_print . ' ' . $btn_cetak_dengan_harga;
+			}
+			$sub_array[] = $rs->id_sa_form;
+			$sub_array[] = $rs->tgl_servis;
+			$sub_array[] = $rs->jenis_customer;
+			$sub_array[] = $rs->no_polisi;
+			$sub_array[] = $rs->nama_customer;
+			$sub_array[] = $rs->no_mesin;
+			$sub_array[] = $rs->no_rangka;
+			$sub_array[] = $rs->tipe_ahm;
+			$sub_array[] = $rs->warna;
+			$sub_array[] = $rs->tahun_produksi;
+			$sub_array[] = $status;
+			$sub_array[] = $button;
+			$data[]      = $sub_array;
+		}
+		$output = array(
+			"draw"            =>     intval($_POST["draw"]),
+			"recordsFiltered" =>     $this->make_query_history(true),
+			"data"            =>     $data
+		);
+		echo json_encode($output);
+	}
+
+	public function make_query_history($recordsFiltered = null)
+	{
+		$start        = $this->input->post('start');
+		$length       = $this->input->post('length');
+		$limit        = "LIMIT $start, $length";
+
+		if ($recordsFiltered == true) $limit = '';
+
+
+		$filter = [
+			'limit'  => $limit,
+			'order'  => isset($_POST['order']) ? $_POST['order'] : '',
+			'search' => $this->input->post('search')['value'],
+			'status_in' => "'closed','canceled'",
+			'id_dealer' => $this->m_admin->cari_dealer(),
+			'join' => ['customer', 'tipe_kendaraan', 'warna'],
+		];
+		if ($recordsFiltered == true) {
+			return $this->m_wo->getWorkOrder($filter)->num_rows();
+		} else {
+			return $this->m_wo->getWorkOrder($filter)->result();
+		}
+	}
+
+	function injectHargaKPB()
+	{
+		$kpb = "SELECT harga_jasa FROM ms_kpb_detail WHERE id_tipe_kendaraan=ch23.id_tipe_kendaraan AND kpb_ke=RIGHT(js.id_type,1)";
+		// $kpb = 0;
+		$data = $this->db->query("SELECT wopk.id_work_order,wopk.harga,ch23.id_tipe_kendaraan,($kpb) harga_kpb,RIGHT(js.id_type,1),wopk.id_jasa
+		FROM tr_h2_wo_dealer_pekerjaan wopk 
+		JOIN tr_h2_wo_dealer wo ON wo.id_work_order=wopk.id_work_order
+		JOIN tr_h2_sa_form sa ON sa.id_sa_form=wo.id_sa_form
+		JOIN ms_customer_h23 ch23 ON ch23.id_customer=sa.id_customer
+		JOIN ms_h2_jasa js ON js.id_jasa=wopk.id_jasa 
+		WHERE js.id_type IN('ASS1','ASS2','ASS3','ASS4') AND (wopk.harga!=($kpb) OR wopk.subtotal!=($kpb))
+		-- LIMIT 200
+		");
+		$this->db->trans_begin();
+		if ($data->num_rows() == 0) {
+			send_json('Tidak Ada Data');
+		}
+		foreach ($data->result() as $dt) {
+			$upd = ['harga' => $dt->harga_kpb, 'subtotal' => $dt->harga_kpb];
+			$cond = ['id_work_order' => $dt->id_work_order, 'id_jasa' => $dt->id_jasa];
+			$this->db->update('tr_h2_wo_dealer_pekerjaan', $upd, $cond);
+		}
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			$rsp = [
+				'status' => 'error',
+				'pesan' => ' Something went wrong'
+			];
+		} else {
+			$this->db->trans_commit();
+			$rsp = [
+				'status' => 'sukses',
+			];
+		}
+		send_json($rsp);
+	}
+	public function injectGrandTotalWO()
+	{
+		$this->db->select('id_work_order,created_at');
+		if (isset($_GET['id'])) {
+			$this->db->where('id_work_order', $_GET['id']);
+		}
+		if (isset($_GET['gt'])) {
+			$this->db->where('grand_total', 0);
+		}
+		$wo = $this->db->get('tr_h2_wo_dealer');
+		foreach ($wo->result() as $w) {
+			$jasa = $this->db->query("SELECT SUM(subtotal) tot FROM tr_h2_wo_dealer_pekerjaan WHERE id_work_order='$w->id_work_order' AND pekerjaan_batal!=1")->row()->tot;
+
+			$return = "SELECT kuantitas_return FROM tr_h3_dealer_sales_order_parts spt WHERE spt.nomor_so=prts.nomor_so AND spt.id_part=prts.id_part";
+			$part = $this->db->query("SELECT *,($return) AS qty_return FROM tr_h2_wo_dealer_parts prts WHERE prts.id_work_order='$w->id_work_order' AND pekerjaan_batal!=1");
+			$total_part = 0;
+			foreach ($part->result_array() as $prt) {
+				$prt['qty'] = $prt['qty'] - $prt['qty_return'];
+				$sub = subtotal_part($prt, $prt['harga']);
+				// $prts[] = $prt;
+				$total_part += $sub;
+			}
+			// send_json($prts);
+
+			$grand_total = $jasa + $total_part;
+			if ($grand_total > 0) {
+				$upd[] = [
+					'id_work_order' => $w->id_work_order,
+					'grand_total' => $grand_total,
+					'total_jasa' => $jasa,
+					'total_part' => $total_part
+				];
+			}
+
+			$filter_part = [
+				'id_work_order' => $w->id_work_order,
+				'group_by_no_nsc' => true,
+				'group_by_no_nsc_only_grand' => true,
+				'kelompok_part_not_in' => "'OIL'"
+			];
+			$get_part = $this->m_bil->getNSCParts($filter_part);
+			$nilai_part = 0;
+			if ($get_part->num_rows() > 0) {
+				$nilai_part = $get_part->row()->gt;
+			}
+
+			$filter_oli = [
+				'id_work_order' => $w->id_work_order,
+				'group_by_no_nsc' => true,
+				'group_by_no_nsc_only_grand' => true,
+				'kelompok_part_in' => "'OIL'"
+			];
+			$get_oli = $this->m_bil->getNSCParts($filter_oli);
+			$nilai_oli = 0;
+			if ($get_oli->num_rows() > 0) {
+				$nilai_oli = $get_oli->row()->gt;
+			}
+			$upd_nsc[] = ['id_referensi' => $w->id_work_order, 'tot_nsc_part' => $nilai_part, 'tot_nsc_oli' => $nilai_oli, 'tot_nsc' => $nilai_oli + $nilai_part];
+		}
+		if (empty($upd)) {
+			echo 'Kosong';
+		}
+		if (isset($_GET['cek'])) {
+			$tes = ['upd' => $upd, 'upd_nsc' => $upd_nsc];
+			send_json($tes);
+		}
+		$this->db->trans_begin();
+		if (isset($upd)) {
+			$this->db->update_batch('tr_h2_wo_dealer', $upd, 'id_work_order');
+		}
+		if (isset($upd_nsc)) {
+			$this->db->update_batch('tr_h23_nsc', $upd_nsc, 'id_referensi');
+		}
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			$rsp = [
+				'status' => 'error',
+				'pesan' => ' Something went wrong'
+			];
+		} else {
+			$this->db->trans_commit();
+			$rsp = [
+				'status' => 'sukses',
+			];
+		}
+		send_json($rsp);
+	}
+	function injectNoNSC()
+	{
+		$get_data = $this->db->query("SELECT id_work_order,wo.no_nsc,nsc.no_nsc no_nsc_real,nsc.created_at created_nsc_at, nsc.created_by created_nsc_by FROM
+		 tr_h2_wo_dealer wo 
+		 JOIN tr_h23_nsc nsc ON nsc.id_referensi=wo.id_work_order
+		 WHERE wo.no_nsc IS NULL");
+		if ($get_data->num_rows() > 0) {
+			foreach ($get_data->result() as $rs) {
+				$data[] = [
+					'id_work_order' => $rs->id_work_order,
+					'no_nsc' => $rs->no_nsc_real,
+					'created_nsc_at' => $rs->created_nsc_at,
+					'created_nsc_by' => $rs->created_nsc_by,
+				];
+			}
+		}
+		if (isset($_GET['cek'])) {
+			send_json($data);
+		} else {
+			if (isset($data)) {
+				$this->db->update_batch('tr_h2_wo_dealer', $data, 'id_work_order');
+				echo 'sukses';
+			}
+		}
+	}
+}

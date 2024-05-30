@@ -1,0 +1,1 @@
+<a href="<?= base_url("dealer/h3_dealer_manage_stock_out/detail?id_manage_stock_out={$id}") ?>" class="btn btn-xs btn-flat btn-info">View</a>

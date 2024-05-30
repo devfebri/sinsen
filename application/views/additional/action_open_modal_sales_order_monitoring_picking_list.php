@@ -1,0 +1,1 @@
+<a onclick='return view_modal_sales_order("<?= $id_sales_order ?>")'><?= $id_sales_order ?></a>

@@ -1,0 +1,1 @@
+<button class="btn btn-xs btn-flat btn-info" type='button' onclick='return open_view_tipe_motor_part_sales_order_modal("<?= $id_part ?>")'>View</button>

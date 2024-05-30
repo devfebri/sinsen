@@ -1,0 +1,2 @@
+
+<button onClick='return pilih_serial_number(<?= $data ?>, <?= $this->input->post("index") ?>)' data-dismiss='modal' class="btn btn-xs btn-flat btn-success" type="button"><i class="fa fa-check"></button>

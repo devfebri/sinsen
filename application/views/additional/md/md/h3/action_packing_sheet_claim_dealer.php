@@ -1,0 +1,1 @@
+<button class="btn btn-xs btn-flat btn-success" type='button' onclick='return pilih_packing_sheet_claim_dealer(<?= $data ?>)' data-dismiss='modal'><i class="fa fa-check"></i></button>

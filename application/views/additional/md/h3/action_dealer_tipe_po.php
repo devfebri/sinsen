@@ -1,0 +1,1 @@
+<button <?= (count($this->input->post('selected_id_dealer')) > 0 and in_array($id_dealer, $this->input->post('selected_id_dealer'))) ? 'disabled' : '' ?> class="btn btn-xs btn-flat btn-success" type='button' onclick='return pilih_dealer_tipe_po(<?= $data ?>)' data-dismiss='modal'><i class="fa fa-check"></i></button>

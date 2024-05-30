@@ -1,0 +1,1 @@
+<a onclick='return open_view_modal_picking_list("<?= $id ?>")'><?= $id ?></a>

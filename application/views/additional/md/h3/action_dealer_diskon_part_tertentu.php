@@ -1,0 +1,1 @@
+<button <?= ( $this->input->post('id_dealers') != null and  in_array($id_dealer, $this->input->post('id_dealers')) ) ? 'disabled' : '' ?> class="btn btn-xs btn-flat btn-success" type='button' onclick='return pilih_dealer_diskon_part_tertentu(<?= $data ?>)' data-dismiss='modal'><i class="fa fa-check"></i></button>

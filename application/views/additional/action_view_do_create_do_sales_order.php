@@ -1,0 +1,1 @@
+<button onclick='return open_view_do("<?= $id ?>")' class="btn btn-xs btn-flat btn-info">View</button>

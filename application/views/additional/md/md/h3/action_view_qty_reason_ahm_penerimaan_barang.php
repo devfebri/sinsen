@@ -1,0 +1,1 @@
+<button <?= $proses_claim_ahm == 1 ? 'disabled' : '' ?> onclick='return open_view_reason_ahm(<?= $id ?>)' class="btn btn-xs btn-flat btn-info" type="button">View</button>

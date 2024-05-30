@@ -1,0 +1,1 @@
+<a onclick='return open_view_modal_qty_booking("<?= $id_part ?>")'><?= $qty_booking ?></a>

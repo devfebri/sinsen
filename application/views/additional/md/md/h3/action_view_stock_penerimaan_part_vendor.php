@@ -1,0 +1,1 @@
+<button class="btn btn-flat btn-xs btn-info" type='button' onclick='return open_view_stock(<?= $id ?>)'>View</button>

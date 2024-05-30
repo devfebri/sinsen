@@ -1,0 +1,1 @@
+<button onclick='return pilih_surat_jalan_ekspedisi_berita_acara_penerimaan_barang(<?= $data ?>)' data-dismiss='modal' class="btn btn-xs btn-flat btn-success" type="button"><i class="fa fa-check"></button>

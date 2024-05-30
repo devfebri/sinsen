@@ -1,0 +1,1452 @@
+<style type="text/css">
+
+.myTable1{
+
+  margin-bottom: 0px;
+
+}
+
+.myt{
+
+  margin-top: 0px;
+
+}
+
+.isi{
+
+  height: 30px;  
+
+  padding-left: 5px;
+
+  padding-right: 5px;  
+
+  margin-right: 0px; 
+
+}
+
+.isi_combo{   
+
+  height: 30px;
+
+  border:1px solid #ccc;
+
+  padding-left:1.5px;
+
+}
+
+</style>
+
+
+
+<base href="<?php echo base_url(); ?>" />
+
+<div class="content-wrapper">
+
+<!-- Content Header (Page header) -->
+
+<section class="content-header">
+
+  <h1>
+
+    <?php echo $title; ?>    
+
+  </h1>
+
+  <ol class="breadcrumb">
+
+    <li><a href="panel/home"><i class="fa fa-home"></i> Dashboard</a></li>    
+
+    <li class="">H1</li>
+
+    <li class="">Bussiness Control</li>
+
+    <li class="active"><?php echo ucwords(str_replace("_"," ",$isi)); ?></li>
+
+  </ol>
+
+  </section>
+
+  <section class="content">
+
+    <?php 
+
+    if($set=="insert"){
+
+    ?>
+
+
+
+    <div class="box box-default">
+
+      <div class="box-header with-border">
+
+        <h3 class="box-title">
+
+          <a href="h1/claim_sales_program">
+
+            <button <?php echo $this->m_admin->set_tombol($id_menu,$group,"select"); ?> class="btn bg-maroon btn-flat margin"><i class="fa fa-eye"></i> View Data</button>
+
+          </a>
+
+        </h3>
+
+        <div class="box-tools pull-right">
+
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+
+          <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+
+        </div>
+
+      </div><!-- /.box-header -->
+
+      <div class="box-body">
+
+        <?php                       
+
+        if (isset($_SESSION['pesan']) && $_SESSION['pesan'] <> '') {                    
+
+        ?>                  
+
+        <div class="alert alert-<?php echo $_SESSION['tipe'] ?> alert-dismissable">
+
+            <strong><?php echo $_SESSION['pesan'] ?></strong>
+
+            <button class="close" data-dismiss="alert">
+
+                <span aria-hidden="true">&times;</span>
+
+                <span class="sr-only">Close</span>  
+
+            </button>
+
+        </div>
+
+        <?php
+
+        }
+
+            $_SESSION['pesan'] = '';                      
+
+        ?>
+
+        <div class="row">
+
+          <div class="col-md-12">            
+
+            <form class="form-horizontal" action="h1/claim_sales_program/save" method="post" enctype="multipart/form-data">              
+
+              <div class="box-body">       
+
+                <br>
+
+                <div class="form-group">                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label">ID Progam MD</label>
+
+                  <div class="col-sm-4">
+
+                    <select class="form-control select2" onchange="showID()" id="id_program_ahm">
+
+                      <?php 
+
+                        // $get_program = $this->db->query("SELECT * FROM tr_sales_program
+
+                        //   WHERE id_program_md NOT IN (SELECT id_program_md_gabungan from tr_sales_program_gabungan WHERE id_program_md_gabungan IS NOT NULl)
+
+                        //   ORDER BY created_at DESC");
+
+                         $get_program = $this->db->query("SELECT * FROM tr_sales_program
+
+                          ORDER BY created_at DESC");
+
+                        if ($get_program->num_rows() > 0) {
+
+                            echo "<option value=''>- choose -</option>";
+
+                            foreach ($get_program->result() as $key => $rs) {
+
+                              echo "<option value='$rs->id_program_ahm' data-md='$rs->id_program_md'>$rs->id_program_md</option>";
+
+                            }
+
+                        }
+
+                      ?>
+
+                    </select>
+
+                  </div>                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label">ID Program MD</label>
+
+                  <div class="col-sm-4">
+
+                    <input type="text" name="id_program_md" id="id_program_md" class="form-control" readonly>
+
+                  </div>
+
+                </div>
+
+               <?php /* <div class="form-group">                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label">Periode Awal</label>
+
+                  <div class="col-sm-4">
+
+                    <input type="text" name="periode_awal" placeholder="Periode Awal" id="tanggal2" class="form-control">
+
+                  </div>                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label">Periode Akhir</label>
+
+                  <div class="col-sm-4">
+
+                    <input type="text" name="periode_akhir" placeholder="Periode Akhir" id="tanggal" class="form-control">
+
+                  </div>                  
+
+                </div> */ ?> 
+
+                <div class="form-group">                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label">Kode Dealer</label>
+
+                  <div class="col-sm-4">
+
+                    <select class="form-control select2" id="id_dealer" name="id_dealer">                     
+
+                    </select>
+
+                  </div>                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label"></label>
+
+                  <div class="col-sm-4">
+
+                    <button class="btn btn-primary btn-flat" type="button" onclick="generate()">Generate</button>
+
+                  </div>                  
+
+                </div>  
+
+                <div id="showGenerate"></div>               
+
+                <br>
+
+
+
+                
+
+              </div><!-- /.box-body -->
+
+              <div class="box-footer">
+
+                <div class="col-sm-5">
+
+                </div>
+
+                <div class="col-sm-7">                  
+
+                  <button type="submit" onclick="return confirm('Are you sure to save all data?')" name="save" value="save" class="btn btn-info btn-flat"><i class="fa fa-save"></i> Save All</button>
+
+                                             
+
+                </div>
+
+              </div><!-- /.box-footer -->
+
+            </form>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div><!-- /.box -->
+
+
+
+    <?php 
+
+    }elseif($set=='verifikasi'){
+
+    ?>
+
+
+
+     <div class="box box-default">
+
+      <div class="box-header with-border">
+
+        <h3 class="box-title">
+
+          <a href="h1/claim_sales_program">
+
+            <button <?php echo $this->m_admin->set_tombol($id_menu,$group,"select"); ?> class="btn bg-maroon btn-flat margin"><i class="fa fa-eye"></i> View Data</button>
+
+          </a>
+
+        </h3>
+
+        <div class="box-tools pull-right">
+
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+
+          <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+
+        </div>
+
+      </div><!-- /.box-header -->
+
+      <div class="box-body">
+
+        <?php                       
+
+        if (isset($_SESSION['pesan']) && $_SESSION['pesan'] <> '') {                    
+
+        ?>                  
+
+        <div class="alert alert-<?php echo $_SESSION['tipe'] ?> alert-dismissable">
+
+            <strong><?php echo $_SESSION['pesan'] ?></strong>
+
+            <button class="close" data-dismiss="alert">
+
+                <span aria-hidden="true">&times;</span>
+
+                <span class="sr-only">Close</span>  
+
+            </button>
+
+        </div>
+
+        <?php
+
+        }
+
+            $_SESSION['pesan'] = '';                      
+
+        ?>
+
+        <div class="row">
+
+          <div class="col-md-12">            
+
+            <form class="form-horizontal" action="h1/claim_sales_program/save" method="post" enctype="multipart/form-data">              
+
+              <div class="box-body">       
+
+                <div class="form-group">                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label">ID Program MD</label>
+
+                  <div class="col-sm-4">
+
+                    <input type="text" name="periode_awal" placeholder="ID Program MD" readonly class="form-control">
+
+                  </div>                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label">Nama Program</label>
+
+                  <div class="col-sm-4">
+
+                    <input type="text" name="periode_akhir" placeholder="Nama Program" readonly class="form-control">
+
+                  </div>                  
+
+                </div>  
+
+                <div class="form-group">                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label">Periode (Awal-Akhir)</label>
+
+                  <div class="col-sm-4">
+
+                    <input type="text" name="periode_awal" placeholder="Periode (Awal-Akhir)" readonly class="form-control">
+
+                  </div>                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label">Nama Dealer</label>
+
+                  <div class="col-sm-4">
+
+                    <input type="text" name="periode_akhir" placeholder="Nama Dealer" readonly class="form-control">
+
+                  </div>                  
+
+                </div>  
+
+                
+
+                <table class="table table-bordered table-hovered myTable1" width="100%">
+
+                  <tr>
+
+                    <td width='10%'>No Mesin</td>
+
+                    <td width='10%'>Tipe</td>                                        
+
+                    <td width='10%'>No Faktur</td>                
+
+                    <td width='5%'>Tgl BASTD</td>    
+
+                    <td width='5%'>Nama Customer</td>
+
+                    <td width='5%'>Nama Leasing</td>
+
+                    <td width='5%'>Status</td>                                    
+
+                    <td width='10%'>Alasan Reject</td>                                    
+
+                  </tr>                           
+
+                </table>                  
+
+                <br>
+
+
+
+                
+
+              </div><!-- /.box-body -->
+
+              <div class="box-footer">
+
+                <div class="col-sm-2">
+
+                </div>
+
+                <div class="col-sm-10">                  
+
+                  <button type="submit" onclick="return confirm('Are you sure to save all data?')" name="save" value="save" class="btn btn-info btn-flat"><i class="fa fa-save"></i> Save All</button>
+
+                  <button type="reset" class="btn btn-default btn-flat"><i class="fa fa-refresh"></i> Cancel</button>                                  
+
+                </div>
+
+              </div><!-- /.box-footer -->
+
+            </form>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div><!-- /.box -->
+
+    
+
+    <?php
+
+    }elseif($set=="view"){
+
+    ?>
+
+
+
+    <div class="box">
+
+      <div class="box-header with-border">
+
+        <h3 class="box-title">
+
+          <a href="h1/claim_sales_program/add">            
+
+            <button <?php echo $this->m_admin->set_tombol($id_menu,$group,"insert"); ?> class="btn bg-blue btn-flat margin"><i class="fa fa-plus"></i> Add New</button>
+
+          </a>
+
+           <a href="h1/claim_sales_program/history">            
+
+            <button class="btn bg-green btn-flat margin"> History</button>
+
+          </a>          
+
+                    
+
+        </h3>
+
+        <div class="box-tools pull-right">
+
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+
+          <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+
+        </div>
+
+      </div><!-- /.box-header -->
+
+      <div class="box-body">
+
+        <?php                       
+
+        if (isset($_SESSION['pesan']) && $_SESSION['pesan'] <> '') {                    
+
+        ?>                  
+
+        <div class="alert alert-<?php echo $_SESSION['tipe'] ?> alert-dismissable">
+
+            <strong><?php echo $_SESSION['pesan'] ?></strong>
+
+            <button class="close" data-dismiss="alert">
+
+                <span aria-hidden="true">&times;</span>
+
+                <span class="sr-only">Close</span>  
+
+            </button>
+
+        </div>
+
+        <?php
+
+        }
+
+            $_SESSION['pesan'] = '';                        
+
+                
+
+        ?>
+
+        <table id="example2" class="table table-bordered table-hover">
+
+          <thead>
+
+            <tr>              
+
+              <th width="5%">No</th>            
+
+              <th>ID Program MD</th>             
+
+              <th>ID Program AHM</th> 
+
+              <th>Nama Dealer</th>              
+
+              <th>Periode Program</th>
+
+              <th>Status</th>            
+
+              <th width="15%">Action</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>            
+
+          <?php 
+
+          $no=1; 
+
+          $dt = $this->db->query("SELECT * FROM tr_claim_sales_program
+
+              LEFT JOIN tr_sales_program on tr_claim_sales_program.id_program_md = tr_sales_program.id_program_md
+
+              LEFT JOIN ms_dealer on tr_claim_sales_program.id_dealer=ms_dealer.id_dealer
+
+           ORDER BY id_claim_sp DESC");
+
+          foreach($dt->result() as $row) {
+
+            
+
+            $edit = $this->m_admin->set_tombol($id_menu,$group,'edit');
+
+
+
+            $cek = $this->db->query("SELECT sum(perlu_revisi) as sum FROM tr_claim_sales_program_detail WHERE id_claim_sp='$row->id_claim_sp'");
+
+            // $cek_claim_dealer = $this->db->query("SELECT tr_claim_dealer.status FROM tr_claim_sales_program_detail
+
+            //   JOIN tr_claim_dealer ON tr_claim_sales_program_detail.id_claim_dealer=tr_claim_dealer.id_claim
+
+            //   WHERE tr_claim_dealer.status='rejected' AND id_claim_sp='$row->id_claim_sp'
+
+            //   ");
+
+            // $cek_claim_dealer = $cek_claim_dealer->num_rows()>0?1:0;
+
+
+
+            if ($cek->num_rows()>0) {
+
+              $cek = $cek->row();
+
+              if ($cek->sum > 0) {
+
+                $tombol="<a $edit href='h1/claim_sales_program/view?id=$row->id_claim_sp' class='btn btn-flat btn-warning btn-xs'><i class='fa fa-edit'></i> Edit</a>";
+
+                $status='<span class="label label-primary">Waiting</span>';
+
+                echo "          
+
+            <tr>
+
+              <td>$no</td>";                           
+
+              echo "<td><a href=\"h1/claim_sales_program/look?id=$row->id_claim_sp\">$row->id_program_md</a></td>";
+
+
+
+          echo" <td>$row->id_program_ahm</td>              
+
+              <td>$row->nama_dealer</td>
+
+              <td>$row->periode_awal s/d $row->periode_akhir</td>
+
+              <td>$status</td>
+
+              <td align='center'>
+
+                $tombol
+
+              </td>";                                      
+
+          $no++;
+
+              }
+
+              // else{
+
+              //   $status='<span class="label label-success">Approved</span>';
+
+              //   $tombol='';
+
+              // }
+
+            }
+
+            // if ($cek_claim_dealer==1) {
+
+            //   $tombol="<a $edit href='h1/claim_sales_program/view?id=$row->id_claim_sp' class='btn btn-flat btn-warning btn-xs'><i class='fa fa-edit'></i> Edit</a>";
+
+            //     $status='<span class="label label-primary">Waiting</span>';
+
+            // }
+
+          }
+
+          ?>
+
+          </tbody>
+
+        </table>
+
+      </div><!-- /.box-body -->
+
+    </div><!-- /.box -->
+
+
+
+<?php
+
+    }elseif($set=="look"){
+
+    ?>
+
+
+
+    <div class="box">
+
+      <div class="box-header with-border">
+
+        <h3 class="box-title">
+
+           <a href="h1/claim_sales_program">            
+
+            <button <?php echo $this->m_admin->set_tombol($id_menu,$group,"select"); ?> class="btn bg-maroon btn-flat margin"><i class="fa fa-eye"></i> View Data</button>
+
+          </a>             
+
+                    
+
+        </h3>
+
+        <div class="box-tools pull-right">
+
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+
+          <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+
+        </div>
+
+      </div><!-- /.box-header -->
+
+      <div class="box-body">
+
+        <?php                       
+
+        if (isset($_SESSION['pesan']) && $_SESSION['pesan'] <> '') {                    
+
+        ?>                  
+
+        <div class="alert alert-<?php echo $_SESSION['tipe'] ?> alert-dismissable">
+
+            <strong><?php echo $_SESSION['pesan'] ?></strong>
+
+            <button class="close" data-dismiss="alert">
+
+                <span aria-hidden="true">&times;</span>
+
+                <span class="sr-only">Close</span>  
+
+            </button>
+
+        </div>
+
+        <?php
+
+        }
+
+            $_SESSION['pesan'] = '';                        
+
+                
+
+        ?>
+
+        <table id="example2" class="table table-bordered table-hover">
+
+          <thead>
+
+            <tr>              
+
+              <th width="5%">No</th>   
+
+              <th>No Mesin</th>            
+
+              <th>No BASTK</th>
+
+              <th>Tgl BASTK</th>
+
+              <th>Nama Konsumen</th>
+
+              <th>No PO Leasing</th>
+
+              <th>Tgl PO Leasing</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            <?php $detail = $this->db->query("SELECT *,tr_sales_order.no_mesin,tr_claim_dealer.status FROM tr_claim_sales_program_detail
+
+                      inner join tr_claim_dealer on tr_claim_sales_program_detail.id_claim_dealer=tr_claim_dealer.id_claim
+
+                      inner join tr_sales_order on tr_claim_dealer.id_sales_order=tr_sales_order.id_sales_order
+
+                      inner join tr_spk on tr_sales_order.no_spk=tr_spk.no_spk
+
+                      inner join ms_tipe_kendaraan on tr_spk.id_tipe_kendaraan=ms_tipe_kendaraan.id_tipe_kendaraan
+
+            WHERE id_claim_sp='$id_claim_sp'");?>
+
+              <?php $no=1; foreach ($detail->result() as $key => $rs){ ?>
+
+                <?php $getTipe = $this->db->query("SELECT * FROM ms_tipe_kendaraan WHERE id_tipe_kendaraan='$rs->id_tipe_kendaraan'");
+
+                    $getTipe = $getTipe->num_rows()>0?$getTipe->row()->tipe_ahm:''; ?>
+
+                  <tr>
+
+                      <td><?= $no ?></td>
+
+                      <td><?=$rs->no_mesin?></td>
+
+                      <td><?=$getTipe?></td>
+
+                      <td><?=$rs->no_bastk?></td> 
+
+                      <td><?=$rs->nama_konsumen?></td> 
+
+                      <td><?=$rs->no_po_leasing?></td> 
+
+                      <td><?=$rs->tgl_po_leasing?></td> 
+
+                  </tr>
+
+              <?php $no++; } ?>
+
+          
+
+          </tbody>      
+
+        </table>
+
+      </div><!-- /.box-body -->
+
+    </div><!-- /.box -->
+
+
+
+<?php
+
+    }elseif($set=="history"){
+
+    ?>
+
+
+
+    <div class="box">
+
+      <div class="box-header with-border">
+
+        <h3 class="box-title">
+
+          <a href="h1/claim_sales_program">            
+
+            <button <?php echo $this->m_admin->set_tombol($id_menu,$group,"select"); ?> class="btn bg-maroon btn-flat margin"><i class="fa fa-eye"></i> View Data</button>
+
+          </a>     
+
+                    
+
+        </h3>
+
+        <div class="box-tools pull-right">
+
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+
+          <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+
+        </div>
+
+      </div><!-- /.box-header -->
+
+      <div class="box-body">
+
+        <?php                       
+
+        if (isset($_SESSION['pesan']) && $_SESSION['pesan'] <> '') {                    
+
+        ?>                  
+
+        <div class="alert alert-<?php echo $_SESSION['tipe'] ?> alert-dismissable">
+
+            <strong><?php echo $_SESSION['pesan'] ?></strong>
+
+            <button class="close" data-dismiss="alert">
+
+                <span aria-hidden="true">&times;</span>
+
+                <span class="sr-only">Close</span>  
+
+            </button>
+
+        </div>
+
+        <?php
+
+        }
+
+            $_SESSION['pesan'] = '';                        
+
+                
+
+        ?>
+
+        <table id="example2" class="table table-bordered table-hover">
+
+          <thead>
+
+            <tr>              
+
+              <th width="5%">No</th>            
+
+              <th>ID Program MD</th>             
+
+              <th>ID Program AHM</th> 
+
+              <th>Nama Dealer</th>              
+
+              <th>Periode Program</th>
+
+              <th>Status</th>            
+
+              <th width="15%">Action</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>            
+
+          <?php 
+
+          $no=1; 
+
+          $dt = $this->db->query("SELECT * FROM tr_claim_sales_program
+
+              LEFT JOIN tr_sales_program on tr_claim_sales_program.id_program_md = tr_sales_program.id_program_md
+
+              LEFT JOIN ms_dealer on tr_claim_sales_program.id_dealer=ms_dealer.id_dealer
+
+           ORDER BY id_claim_sp DESC");
+
+          foreach($dt->result() as $row) {     
+
+            $cek_perlu=$this->db->query("SELECT sum(perlu_revisi) as sum FROM tr_claim_sales_program_detail WHERE id_claim_sp='$row->id_claim_sp'")->row()->sum;
+
+          if ($cek_perlu==0) {
+
+            
+
+            echo "          
+
+            <tr>
+
+              <td>$no</td>";                  
+
+              echo "<td><a href=\"h1/claim_sales_program/look?id=$row->id_claim_sp\">$row->id_program_md</a></td>";
+
+              echo"
+
+              <td>$row->id_program_ahm</td>              
+
+              <td>$row->nama_dealer</td>
+
+              <td>$row->periode_awal s/d $row->periode_akhir</td>
+
+              <td><span class='label label-success'>Approved</span></td>
+
+              <td>
+
+                <a href='h1/claim_sales_program/view?id=$row->id_claim_sp' class='btn btn-flat btn-warning btn-xs'><i class='fa fa-eye'></i> View</a>
+
+              </td>";                                      
+
+          $no++;
+
+          }
+
+          }
+
+          ?>
+
+          </tbody>
+
+        </table>
+
+      </div><!-- /.box-body -->
+
+    </div><!-- /.box -->
+
+
+
+    <?php
+
+    } elseif($set=="detail"){
+
+      $row=$row->row();
+
+    ?>
+
+
+
+    <div class="box box-default">
+
+      <div class="box-header with-border">
+
+        <h3 class="box-title">
+
+          <a href="h1/claim_sales_program">
+
+            <button <?php echo $this->m_admin->set_tombol($id_menu,$group,"select"); ?> class="btn bg-maroon btn-flat margin"><i class="fa fa-eye"></i> View Data</button>
+
+          </a>
+
+        </h3>
+
+        <div class="box-tools pull-right">
+
+          <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+
+          <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+
+        </div>
+
+      </div><!-- /.box-header -->
+
+      <div class="box-body">
+
+        <?php                       
+
+        if (isset($_SESSION['pesan']) && $_SESSION['pesan'] <> '') {                    
+
+        ?>                  
+
+        <div class="alert alert-<?php echo $_SESSION['tipe'] ?> alert-dismissable">
+
+            <strong><?php echo $_SESSION['pesan'] ?></strong>
+
+            <button class="close" data-dismiss="alert">
+
+                <span aria-hidden="true">&times;</span>
+
+                <span class="sr-only">Close</span>  
+
+            </button>
+
+        </div>
+
+        <?php
+
+        }
+
+            $_SESSION['pesan'] = '';                      
+
+        ?>
+
+        <div class="row">
+
+          <div class="col-md-12">            
+
+            
+
+              <div class="box-body">       
+
+                <br>
+
+                <div class="form-horizontal">
+
+                    <div class="form-group">                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label">ID Progam AHM</label>
+
+                  <div class="col-sm-4">
+
+                    <input type="text" name="id_program_md" id="id_program_md" class="form-control" readonly value="<?=$row->id_program_ahm?>">
+
+                  </div>                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label">ID Program MD</label>
+
+                  <div class="col-sm-4">
+
+                    <input type="text" name="id_program_md" id="id_program_md" class="form-control" readonly value="<?=$row->id_program_md?>">
+
+                  </div>
+
+                </div>
+
+                <div class="form-group">                  
+
+                  <label for="inputEmail3" class="col-sm-2 control-label">Kode Dealer</label>
+
+                  <div class="col-sm-4">
+
+                    <input type="text" name="id_program_md" id="id_program_md" class="form-control" readonly value="<?=$row->kode_dealer_md?> | <?=$row->nama_dealer?>" >
+
+                                  
+
+                </div>  <br><br><br>
+
+                <button class="btn btn-block btn-warning btn-flat btn-sm" disabled> DETAIL UNIT </button><br>
+
+ <table id="example4" class="table table-bordered table-hovered table-condensed" width="100%">
+
+  <thead>
+
+    <th width='5%'>No Mesin</th>
+
+    <th width='30%'>Tipe</th>                                        
+
+    <th>Warna</th>
+
+    <th>No BASTK</th>
+
+    <th>Tgl BASTK</th>
+
+    <th>Nama Konsumen</th>
+
+    <th>No PO Leasing</th>
+
+    <th>Tgl PO Leasing</th>
+
+    <th width='10%'>No Faktur</th>                                        
+
+    <th width='7%'>Tgl Faktur</th>                                        
+
+    <th width='10%'>Nilai Potongan</th>                                        
+
+    <th width='8%'>Cek Syarat</th>                                        
+
+    <th width='5%'>Status</th>                                        
+
+    <th width='8%'>Perlu Revisi</th>                                                        
+
+  </thead> 
+
+  <tbody>
+
+    <?php $detail = $this->db->query("SELECT *,tr_sales_order.no_mesin,tr_claim_dealer.status FROM tr_claim_sales_program_detail
+
+              inner join tr_claim_dealer on tr_claim_sales_program_detail.id_claim_dealer=tr_claim_dealer.id_claim
+
+              inner join tr_sales_order on tr_claim_dealer.id_sales_order=tr_sales_order.id_sales_order
+
+              inner join tr_spk on tr_sales_order.no_spk=tr_spk.no_spk
+
+              inner join ms_tipe_kendaraan on tr_spk.id_tipe_kendaraan=ms_tipe_kendaraan.id_tipe_kendaraan
+
+    WHERE id_claim_sp='$row->id_claim_sp'");?>
+
+      <?php foreach ($detail->result() as $key => $rs){ ?>
+
+        <?php $getTipe = $this->db->query("SELECT * FROM ms_tipe_kendaraan WHERE id_tipe_kendaraan='$rs->id_tipe_kendaraan'");
+
+            $getTipe = $getTipe->num_rows()>0?$getTipe->row()->deskripsi_ahm.'|'.$getTipe->row()->id_tipe_kendaraan:'';
+
+            $getWarna = $this->db->query("SELECT * FROM ms_warna WHERE id_warna='$rs->id_warna'");
+
+            $getWarna = $getWarna->num_rows()>0?$getWarna->row()->warna:''; ?>
+
+          <tr>
+
+              <td><?=$rs->no_mesin?></td>
+
+              <td><?=$getTipe?></td>
+
+              <td><?= $getWarna ?></td>
+
+              <td><?= $rs->no_bastk ?></td>
+
+              <td><?= $rs->tgl_bastk ?></td>
+
+              <td><?= $rs->nama_konsumen ?></td>
+
+              <td><?= $rs->no_po_leasing ?></td>
+
+              <td><?= $rs->tgl_po_leasing ?></td>
+
+              <td><?=$rs->no_invoice?></td> 
+
+              <td><?=$rs->tgl_cetak_invoice?></td> 
+
+              <td><?=number_format($rs->nilai_potongan, 0, ',', '.') ?></td>
+
+              <td><button class="btn btn-link" type="button" onclick="showSyarat('<?=$rs->id_claim?>')" >Proses</button></td>
+
+              <?php if ($rs->status=='approved') {
+
+                  $status="<span class='label label-success'>Approved</span>";
+
+              }elseif ($rs->status=='rejected') {
+
+                  $status="<span class='label label-danger'>Rejected</span>";
+
+              }elseif ($rs->status=='ulang') {
+
+                  $status="<span class='label label-danger'>Rejected</span>";
+
+              }else{
+
+                $status='';
+
+              } ?>
+
+              <td align="center"><?=$status?></td>
+
+              <td align="center">
+
+                  <input type="hidden" name="id_claim[]" value="<?=$rs->id_claim?>">
+
+                  <input type="hidden" name="id_<?=$key?>" value="<?=$rs->id?>">
+
+                  <input type="checkbox" name="chk_revisi_<?=$key?>" id="chk_revisi_<?=$key?>" onchange="setRevisi(<?=$key?>)" <?php if($rs->perlu_revisi==1){ ?>checked <?php }else{ echo"disabled"; } ?>>
+
+              </td>
+
+          </tr>
+
+      <?php } ?>
+
+  
+
+  </tbody>       
+
+</table>   
+
+
+
+
+
+<div class="modal fade" id="modalSyarat">      
+
+  <div class="modal-dialog modal-lg" role="document">
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+
+        Cek Syarat
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>        
+
+      </div>
+
+      <div class="modal-body">
+
+        <div id="showModalSyarat"></div>
+
+      </div>      
+
+    </div>
+
+  </div>
+
+</div>             
+
+                <br>
+
+
+
+                
+
+              </div><!-- /.box-body -->
+
+            </form>
+
+                </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div><!-- /.box -->
+
+<?php } ?>
+
+  </section>
+
+</div>
+
+
+
+
+
+<script type="text/javascript">
+
+  function showID()
+
+  {
+
+    var id_program_md = $("#id_program_ahm").select2().find(":selected").data("md");
+
+    $('#id_program_md').val(id_program_md);
+
+     var value={id_program_md:id_program_md}
+
+      $.ajax({
+
+           beforeSend: function() { $('#loading-status').show(); },
+
+           url:"<?php echo site_url('h1/claim_sales_program/getDealer')?>",
+
+           type:"POST",
+
+           data:value,
+
+           cache:false,
+
+           success:function(html){
+
+              $('#loading-status').hide();
+
+              $('#id_dealer').html(html);
+
+           },
+
+           statusCode: {
+
+        500: function() {
+
+          $('#loading-status').hide();
+
+          alert("Something Wen't Wrong");
+
+        }
+
+      }
+
+      });
+
+  }
+
+  function generate(save_detail=null)
+
+  {
+
+     var value={id_program_md:$('#id_program_md').val(),
+
+                id_dealer:$('#id_dealer').val()
+
+               }
+
+      $.ajax({
+
+           beforeSend: function() { $('#loading-status').show(); },
+
+           url:"<?php echo site_url('h1/claim_sales_program/generate')?>",
+
+           type:"POST",
+
+           data:value,
+
+           cache:false,
+
+           success:function(html){
+
+              $('#loading-status').hide();
+
+              if (html=='kosong') {
+                if (save_detail==null) {
+                  alert('Data Tidak Ditemukan');
+                }
+                $('#showGenerate').html('');
+              }else{
+
+                $('#showGenerate').html(html);
+
+              }
+
+           },
+
+           statusCode: {
+
+        500: function() {
+
+          $('#loading-status').hide();
+
+          alert("Something Wen't Wrong");
+
+        }
+
+      }
+
+      });
+
+  }
+
+
+
+  function showSyarat(id_claim)
+
+  {
+
+      <?php 
+
+        $mode='';
+
+      if ($set=='detail') {
+
+        $mode=',mode:"edit"';
+
+      } ?>
+
+       var value={id_claim:id_claim <?=$mode?>}
+
+      $.ajax({
+
+           beforeSend: function() { $('#loading-status').show(); },
+
+           url:"<?php echo site_url('h1/claim_sales_program/getSyarat')?>",
+
+           type:"POST",
+
+           data:value,
+
+           cache:false,
+
+           success:function(html){
+
+              $("#modalSyarat").modal();
+
+              $('#showModalSyarat').html(html);
+
+              $('#loading-status').hide();
+
+           },
+
+           statusCode: {
+
+        500: function() {
+
+          $('#loading-status').hide();
+
+          alert("Something Wen't Wrong");
+
+        }
+
+      }
+
+      });
+
+  }
+
+
+
+  function setRevisi(a)
+
+  {
+
+    if($('#chk_revisi_'+a).prop('checked')) {
+
+        var perlu_revisi=1;
+
+      } else {
+
+        var perlu_revisi=0;
+
+      }
+
+
+
+     var value={id:$("#id_"+a).val(),
+
+                perlu_revisi:perlu_revisi
+
+               }
+
+      $.ajax({
+
+           beforeSend: function() { $('#loading-status').show(); },
+
+           url:"<?php echo site_url('h1/claim_sales_program/setRevisi')?>",
+
+           type:"POST",
+
+           data:value,
+
+           cache:false,
+
+           success:function(html){
+
+              $('#loading-status').hide();
+
+           },
+
+           statusCode: {
+
+        500: function() {
+
+          $('#loading-status').hide();
+
+          alert("Something Wen't Wrong");
+
+        }
+
+      }
+
+      });
+
+  }
+
+</script>

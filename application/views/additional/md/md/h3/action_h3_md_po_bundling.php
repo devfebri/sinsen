@@ -1,0 +1,1 @@
+<a href="h3/h3_md_po_bundling/detail?no_po_aksesoris=<?= $no_po_aksesoris ?>" class="btn btn-flat btn-xs btn-info">View</a>

@@ -1,0 +1,1 @@
+<a target='_blank' href="h3/h3_md_do_sales_order/detail?id=<?= $id_do_sales_order ?>"><?= $id_do_sales_order ?></a>  

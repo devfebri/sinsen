@@ -1,0 +1,629 @@
+<base href="<?php echo base_url(); ?>" />
+<?php if (!isset($iframe)) { ?>
+
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        <?php echo $title; ?>
+      </h1>
+      <ol class="breadcrumb">
+        <li><a href="panel/home"><i class="fa fa-home"></i> Dashboard</a></li>
+        <li class="">Finance H23</li>
+        <li class="">Billing Process</li>
+        <li class="active"><?php echo ucwords(str_replace("_", " ", $isi)); ?></li>
+      </ol>
+    </section>
+  <?php } ?>
+
+  <section class="content">
+    <?php
+    if ($set == "index") : ?>
+      <div class="box">
+        <div class="box-header with-border">
+          <h3 class="box-title">
+            <?php if (can_access($isi, 'can_insert')) : ?>
+              <a href="dealer/nsc/create_nsc" class="btn bg-blue btn-flat margin">Create NSC</a>
+            <?php endif; ?>
+          </h3>
+          <div class="box-tools pull-right">
+            <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+            <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+          </div>
+        </div><!-- /.box-header -->
+        <div class="box-body">
+          <?php
+          if (isset($_SESSION['pesan']) && $_SESSION['pesan'] <> '') {
+          ?>
+            <div class="alert alert-<?php echo $_SESSION['tipe'] ?> alert-dismissable">
+              <strong><?php echo $_SESSION['pesan'] ?></strong>
+              <button class="close" data-dismiss="alert">
+                <span aria-hidden="true">&times;</span>
+                <span class="sr-only">Close</span>
+              </button>
+            </div>
+          <?php
+          }
+          $_SESSION['pesan'] = '';
+
+          ?>
+          <table id="datatable_server" class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th>No NSC</th>
+                <th>Tgl. NSC</th>
+                <th>ID Ref ( No. SO )</th>
+                <th>No. WO</th>
+                <th>Nama Customer</th>
+                <th>No. Telepon</th>
+                <th>Type SMH</th>
+                <th>No. Plat</th>
+              </tr>
+            </thead>
+
+          </table>
+          <script>
+            $(document).ready(function() {
+              var dataTable = $('#datatable_server').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "scrollX": true,
+                "language": {
+                  "infoFiltered": "",
+                  "processing": "<p style='font-size:20pt;background:#d9d9d9b8;color:black;width:100%'><i class='fa fa-refresh fa-spin'></i></p>",
+                },
+                "order": [],
+                "lengthMenu": [
+                  [10, 25, 50, 75, 100],
+                  [10, 25, 50, 75, 100]
+                ],
+                "ajax": {
+                  url: "<?php echo site_url('dealer/' . $isi . '/fetch'); ?>",
+                  type: "POST",
+                  dataSrc: "data",
+                  data: function(d) {
+                    d.status_form = 'open';
+                    d.tgl_servis = '<?= gmdate("Y-m-d", time() + 60 * 60 * 7); ?>';
+                    return d;
+                  },
+                },
+                "columnDefs": [
+                  // // { "targets":[2],"orderable":false},
+                  // {
+                  //   "targets": [5],
+                  //   "className": 'text-center'
+                  // },
+                  // // // { "targets":[0],"checkboxes":{'selectRow':true}}
+                  // // { "targets":[4],"className":'text-right'}, 
+                  // // // { "targets":[2,4,5], "searchable": false } 
+                ],
+              });
+            });
+          </script>
+        </div><!-- /.box-body -->
+      </div><!-- /.box -->
+    <?php endif ?>
+    <?php if ($set == 'form') :
+      $form = '';
+      if ($mode == 'create_nsc') {
+        $form = 'saveNSC';
+      }
+    ?>
+
+      <script src="<?= base_url("assets/vue/vue.min.js") ?>" type="text/javascript"></script>
+      <script src="<?= base_url("assets/vue/accounting.js") ?>" type="text/javascript"></script>
+      <script src="<?= base_url("assets/vue/vue-numeric.min.js") ?>" type="text/javascript"></script>
+      <link href='assets/select2/css/select2.min.css' rel='stylesheet' type='text/css'>
+      <script src="assets/jquery/jquery.min.js"></script>
+      <script src='assets/select2/js/select2.min.js'></script>
+
+      <script>
+        Vue.use(VueNumeric.default);
+        Vue.filter('toCurrency', function(value) {
+          return accounting.formatMoney(value, "", 0, ".", ",");
+          return value;
+        });
+
+        Vue.filter('cekType', function(value, arg1) {
+          if (arg1 == 'persen') {
+            return value + ' %';
+          } else if (arg1 == 'rupiah') {
+            return 'Rp. ' + accounting.formatMoney(value, "", 0, ".", ",");
+          } else if (arg1 == 'value') {
+            return 'Rp. ' + accounting.formatMoney(value, "", 0, ".", ",");
+          } else if (arg1 == 'Percentage') {
+            return value + ' %';
+          } else {
+            return value;
+          }
+        });
+
+        $(document).ready(function() {
+          <?php if (isset($row)) { ?>
+            // form_.showDataBilling();
+          <?php } ?>
+        })
+      </script>
+
+      <div class="box box-default">
+        <div class="box-header with-border">
+          <?php if (!isset($iframe)) { ?>
+
+            <h3 class="box-title">
+              <a href="dealer/<?= $this->uri->segment(2); ?>">
+                <button class="btn bg-maroon btn-flat margin"><i class="fa fa-eye"></i> View Data</button>
+              </a>
+            </h3>
+            <div class="box-tools pull-right">
+              <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+              <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+            </div>
+          <?php } ?>
+        </div><!-- /.box-header -->
+        <div class="box-body">
+          <?php
+          if (isset($_SESSION['pesan']) && $_SESSION['pesan'] <> '') {
+          ?>
+            <div class="alert alert-<?php echo $_SESSION['tipe'] ?> alert-dismissable">
+              <strong><?php echo $_SESSION['pesan'] ?></strong>
+              <button class="close" data-dismiss="alert">
+                <span aria-hidden="true">&times;</span>
+                <span class="sr-only">Close</span>
+              </button>
+            </div>
+          <?php
+          }
+          $_SESSION['pesan'] = '';
+          ?>
+          <div class="row">
+            <div class="col-sm-12">
+              <form class="form-horizontal" id="form_">
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">Referensi</label>
+                  <div class="col-sm-4">
+                    <select name="referensi" class="form-control" v-model="referensi" :disabled="mode=='detail_nsc'">
+                      <option value="">- choose -</option>
+                      <option value="sales">Direct Sales</option>
+                      <option value="work_order">Work Order</option>
+                      <!-- <option value="invoice_jaminan">Nomor Invoice Uang Jaminan</option> -->
+                    </select>
+                  </div>
+                  <label class="col-sm-2 control-label">Kode Dealer</label>
+                  <div class="col-sm-4">
+                    <input type="text" disabled v-model="data.kd_dealer_so" class="form-control">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">Nomor NSC</label>
+                  <div class="col-sm-4">
+                    <input type="text" readonly id="no_nsc" class="form-control" v-model="data.no_nsc">
+                  </div>
+                  <label class="col-sm-2 control-label">Nama Dealer</label>
+                  <div class="col-sm-4">
+                    <input type="text" disabled v-model="data.dealer_so" class="form-control">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class=" col-sm-2 control-label" v-if="referensi=='sales'">Nomor Sales Order</label>
+                  <div class="col-sm-3" v-if="referensi=='sales'">
+                    <input type=" text" readonly id="nomor_so" class="form-control" v-model="data.nomor_so">
+                  </div>
+                  <div class="col-sm-1" v-if="mode=='create_nsc' && referensi=='sales'">
+                    <button type="button" onclick="showModalSOReadyNSC()" id="btnCariSO" class="btn btn-flat btn-primary"><i class="fa fa-search"></i></button>
+                  </div>
+                  <label class="col-sm-2 control-label" v-if="referensi=='work_order'">ID Work Order</label>
+                  <div class="col-sm-3" v-if="referensi=='work_order'">
+                    <input type="text" readonly id="id_work_order" class="form-control" v-model="data.id_work_order">
+                  </div>
+                  <div class="col-sm-1" v-if="mode=='create_nsc' && referensi=='work_order'">
+                    <button type="button" onclick="showModalWOProses()" id="btnCariWO" class="btn btn-flat btn-primary"><i class="fa fa-search"></i></button>
+                  </div>
+                  <div class="col-sm-1" v-if="mode=='detail_nsc'"></div>
+                  <label class="col-sm-2 control-label">ID Customer</label>
+                  <div class="col-sm-4">
+                    <input type="text" readonly id="id_customer" v-model="data.id_customer" class="form-control">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">Waktu NSC</label>
+                  <div class="col-sm-4">
+                    <input type="text" disabled v-model="data.waktu_nsc" class="form-control">
+                  </div>
+                  <label class="col-sm-2 control-label">Nama Customer</label>
+                  <div class="col-sm-4">
+                    <input type="text" disabled v-model="data.nama_customer" class="form-control">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">Tanggal Servis</label>
+                  <div class="col-sm-4">
+                    <input type="text" disabled v-model="data.tgl_servis" class="form-control">
+                  </div>
+                  <label class="col-sm-2 control-label">No. HP Customer</label>
+                  <div class="col-sm-4">
+                    <input type="text" disabled v-model="data.no_hp" class="form-control">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">ID Mekanik (Honda ID)</label>
+                  <div class="col-sm-4">
+                    <input type="text" disabled v-model="data.id_karyawan_dealer" class="form-control">
+                  </div>
+                  <label class="col-sm-2 control-label">Tipe Unit</label>
+                  <div class="col-sm-4">
+                    <input type="text" disabled v-model="data.tipe_ahm" class="form-control">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">Nama Mekanik</label>
+                  <div class="col-sm-4">
+                    <input type="text" disabled v-model="data.nama_lengkap" class="form-control">
+                  </div>
+                  <label class="col-sm-2 control-label">No. Polisi</label>
+                  <div class="col-sm-4">
+                    <input type="text" disabled v-model="data.no_polisi" class="form-control">
+                  </div>
+                </div>
+                <!-- <div class="form-group">
+                  <label class="col-sm-2 control-label" v-if="referensi=='sales'">Invoice Uang Jaminan</label>
+                  <div class="col-sm-4" v-if="referensi=='sales'">
+                    <input type="text" disabled v-model="data.no_inv_uang_jaminan" class="form-control">
+                  </div>
+                  <label class="col-sm-2 control-label">Uang Muka</label>
+                  <div class="col-sm-4">
+                    <input type="text" disabled :value="data.total_bayar | toCurrency" class="form-control">
+                  </div>
+                </div> -->
+                <div class="form-group" v-if="referensi=='sales'">
+                  <label class="col-sm-2 control-label">Kirim Ke Dealer</label>
+                  <div class="col-sm-4">
+                    <input type="text" disabled v-model="data.dealer_po" class="form-control">
+                  </div>
+                </div>
+                <div v-if="data!=''">
+                  <div v-if="data.parts">
+                    <div class="col-md-12">
+                      <button style="font-size: 11pt;font-weight: 540;width: 100%" class="btn btn-success btn-flat btn-sm" disabled>Detail Parts</button><br><br>
+                    </div>
+                    <div class="col-sm-12">
+                      <table class="table table-bordered table-hover table-condensed table-stripped">
+                        <thead>
+                          <th>No.</th>
+                          <th>Kode Part</th>
+                          <th>Part</th>
+                          <th>Qty</th>
+                          <th>ID Promo</th>
+                          <th>Tipe Diskon</th>
+                          <th>Diskon</th>
+                          <th>{{label_harga}}</th>
+                          <th>Subtotal</th>
+                        </thead>
+                        <tbody>
+                          <tr v-for="(prt, index) of data.parts">
+                            <td>{{index+1}}</td>
+                            <td>{{prt.id_part}}</td>
+                            <td>{{prt.nama_part}}</td>
+                            <td>{{prt.qty}}</td>
+                            <td>{{prt.id_promo}}</td>
+                            <td>{{prt.tipe_diskon}}</td>
+                            <td>{{prt.diskon_value | cekType(prt.tipe_diskon)}}</td>
+                            <td align="right">{{set_harga(prt) | toCurrency}}</td>
+                            <td align="right">{{subTotPart(prt) | toCurrency}}</td>
+                          </tr>
+                        </tbody>
+                        <tfoot>
+                          <tr v-if="pkp==1 && tampil_ppn==1">
+                            <td colspan="8" align="right"><b>Total Tanpa PPN</b></td>
+                            <td align="right"><b>{{totParts.total_no_ppn | toCurrency}}</b></td>
+                          </tr>
+                          <tr v-if="pkp==1 && tampil_ppn==1">
+                            <td colspan="8" align="right"><b>PPN</b></td>
+                            <td align="right"><b>{{totParts.ppn | toCurrency}}</b></td>
+                          </tr>
+                          <tr style="font-size:12pt">
+                            <td colspan="8" align="right"><b>Grand Total</b></td>
+                            <td align="right"><b>{{totParts.grand_total | toCurrency}}</b></td>
+                          </tr>
+                          <!-- <tr style="font-size:12pt">
+                            <td colspan="8" align="right"><b>Uang Muka</b></td>
+                            <td align="right">
+                              <b> {{data.total_bayar | toCurrency}}</b>
+                            </td>
+                          </tr> -->
+                          <!-- <tr style="font-size:12pt">
+                            <td colspan="8" align="right"><b>Sisa Pembayaran</b></td>
+                            <td align="right"><b>{{totParts.sisa | toCurrency}}</b></td>
+                          </tr> -->
+                        </tfoot>
+                      </table>
+                      </table>
+                    </div>
+                  </div>
+                  <div class="col-sm-12" align="center" v-if="mode=='create_nsc'">
+                    <button type="button" id="submitBtn" @click.prevent="saveNSC" class="btn btn-info btn-flat">Create NSC</button>
+                  </div>
+                </div> <!-- END IF -->
+              </form>
+            </div>
+          </div>
+        </div>
+        <?php
+        $data['data'] = ['SOReadyNSC', 'WOProses', 'wo_nsc'];
+        $this->load->view('dealer/h2_api', $data); ?>
+        <script>
+          var form_ = new Vue({
+            el: '#form_',
+            data: {
+              mode: '<?= $mode ?>',
+              referensi: '<?= isset($row) ? $row->referensi : '' ?>',
+              data: <?= isset($row) ? json_encode($row) : '[]' ?>,
+              pkp: <?= $pkp ?>,
+              tampil_ppn: <?= $tampil_ppn ?>,
+            },
+            methods: {
+              set_harga: function(prt) {
+                harga = prt.harga_beli;
+                if (this.pkp === 1 && this.tampil_ppn) {
+                  harga = parseInt(prt.harga_beli) / 1.1;
+                  // console.log(harga);
+                }
+                return harga
+              },
+              saveNSC: function() {
+                $('#form_').validate({
+                  rules: {
+                    'checkbox': {
+                      required: true
+                    }
+                  },
+                  highlight: function(input) {
+                    $(input).parents('.form-group').addClass('has-error');
+                  },
+                  unhighlight: function(input) {
+                    $(input).parents('.form-group').removeClass('has-error');
+                  }
+                })
+                if ($('#form_').valid()) // check if form is valid
+                {
+                  if (form_.data.parts === undefined) {
+                    alert('Part tidak ditemukan !');
+                    return false;
+                  }
+                  if (confirm("Apakah anda yakin ?") === true) {
+                    $.ajax({
+                      beforeSend: function() {
+                        $('#submitBtn').html('<i class="fa fa-spinner fa-spin"></i> Process');
+                        $('#submitBtn').attr('disabled', true);
+                      },
+                      url: '<?= base_url('dealer/nsc/get_no_nsc') ?>',
+                      type: "POST",
+                      data: {
+                        ajax: true
+                      },
+                      cache: false,
+                      async: true,
+                      dataType: 'JSON',
+                      success: function(response) {
+                        if (response.status == 'sukses') {
+                          potongStok(response.no_nsc);
+                        } else {
+                          alert(response.pesan);
+                          $('#submitBtn').html('Create NSC');
+                          $('#submitBtn').attr('disabled', false);
+                        }
+                      },
+                      error: function() {
+                        alert("Something Went Wrong !");
+                        $('#submitBtn').html('Create NSC');
+                        $('#submitBtn').attr('disabled', false);
+                      }
+                    });
+                  }
+                } else {
+                  alert('Silahkan isi field required !')
+                }
+              },
+              subTotPart: function(part) {
+                // return (parseInt(parts.harga_beli) * parseInt(parts.qty)) - parseInt(parts.diskon);
+                harga = parseInt(part.harga_beli);
+                harga_real = harga;
+                if (this.pkp === 1) {
+                  harga = parseInt(harga / 1.1);
+                }
+                if (part.tipe_diskon == 'Percentage') {
+                  diskon = (part.diskon_value / 100) * harga;
+                  // console.log(diskon)
+                  harga_real -= diskon;
+                }
+                qty = parseInt(part.qty);
+                if (part.tipe_diskon == 'FoC') {
+                  qty -= parseInt(part.diskon_value);
+                }
+                potongan_harga = 0;
+                if (part.tipe_diskon == 'Value') {
+                  potongan_harga = parseInt(part.diskon_value);
+                }
+                if (this.pkp == 1 && this.tampil_ppn === 1) {
+                  harga_real = harga_real / 1.1;
+                }
+                return (qty * harga_real) - potongan_harga;
+              }
+            },
+
+            computed: {
+              totParts: function() {
+                tot = {
+                  total_no_ppn: 0,
+                  grand_total: 0,
+                  ppn: 0,
+                  sisa: 0,
+                }
+                for (dtl of this.data.parts) {
+                  tot.total_no_ppn += this.subTotPart(dtl);
+                }
+                if (this.pkp === 1 && this.tampil_ppn === 1) {
+                  tot.ppn = Math.round((10 / 100) * tot.total_no_ppn);
+                }
+                tot.grand_total = Math.round(tot.total_no_ppn + tot.ppn);
+                let uang_muka = this.data.total_bayar === null ? 0 : this.data.total_bayar;
+                tot.sisa = tot.grand_total - uang_muka;
+                // console.log(uang_muka);
+                return tot;
+              },
+              label_harga: function() {
+                label_harga = 'HET'
+                if (this.tampil_ppn === 1) {
+                  label_harga = 'HET/1.1 (DPP)'
+                }
+                return label_harga;
+              }
+            },
+            watch: {
+              referensi: function() {
+                this.data = [];
+              },
+
+            }
+          });
+
+          function potongStok(no_nsc) {
+            let values = {
+              parts: form_.data.parts,
+              sumber_transaksi: 'nsc',
+              referensi: no_nsc
+            }
+            $.ajax({
+              beforeSend: function() {
+                $('#submitBtn').html('<i class="fa fa-spinner fa-spin"></i> Process');
+                $('#submitBtn').attr('disabled', true);
+              },
+              url: '<?= base_url('api/dealer/potong_stock') ?>',
+              type: "POST",
+              data: values,
+              cache: false,
+              // async: false,
+              dataType: 'JSON',
+              success: function(response) {
+                if (response.success == '1') {
+                  save_nsc(no_nsc);
+                } else {
+                  alert('Gagal Potong Stok part !');
+                  $('#submitBtn').html('Create NSC');
+                  $('#submitBtn').attr('disabled', false);
+                }
+              },
+              error: function() {
+                alert('Gagal Potong Stok part !');
+                $('#submitBtn').html('Create NSC');
+                $('#submitBtn').attr('disabled', false);
+              }
+            });
+          }
+
+          function save_nsc(params) {
+            let values = {
+              nomor_so: $('#nomor_so').val(),
+              id_work_order: $('#id_work_order').val(),
+              id_customer: $('#id_customer').val(),
+              referensi: form_.referensi,
+              uang_muka: form_.data.total_bayar,
+              no_inv_jaminan: form_.data.no_inv_uang_jaminan,
+              tot_nsc: form_.totParts.grand_total
+            };
+            $.ajax({
+              beforeSend: function() {
+                $('#submitBtn').html('<i class="fa fa-spinner fa-spin"></i> Process');
+                $('#submitBtn').attr('disabled', true);
+              },
+              url: '<?= base_url('dealer/nsc/' . $form) ?>',
+              type: "POST",
+              data: values,
+              cache: false,
+              async: false,
+              dataType: 'JSON',
+              success: function(response) {
+                if (response.status == 'sukses') {
+                  window.location = '<?= base_url('dealer/nsc') ?>';
+                } else {
+                  alert(response.pesan);
+                  $('#submitBtn').html('Create NSC');
+                  $('#submitBtn').attr('disabled', false);
+                }
+              },
+              error: function() {
+                alert("Something Went Wrong !");
+                $('#submitBtn').html('Create NSC');
+                $('#submitBtn').attr('disabled', false);
+              }
+            });
+          }
+
+          function pilihSO(so) {
+            $.ajax({
+              beforeSend: function() {
+                $('#btnCariSO').html('<i class="fa fa-spinner fa-spin"></i>');
+                $('#btnCariSO').attr('disabled', true);
+              },
+              url: '<?= base_url('api/h2/getSoNSC') ?>',
+              type: "POST",
+              data: so,
+              cache: false,
+              dataType: 'JSON',
+              success: function(response) {
+                if (response.status == 'sukses') {
+                  form_.data = response.data;
+                  // if (form_.tampil_ppn == 1) {
+                  //   form_.label_harga = 'DPP';
+                  // } else {
+                  //   form_.label_harga = 'HET';
+                  // }
+                } else {
+                  alert(response.pesan);
+                }
+                $('#btnCariSO').html('<i class="fa fa-search"></i>');
+                $('#btnCariSO').attr('disabled', false);
+              },
+              error: function() {
+                alert("Something Went Wrong !");
+                $('#btnCariSO').html('<i class="fa fa-search"></i>');
+                $('#btnCariSO').attr('disabled', false);
+              }
+            });
+          }
+
+          function pilihWO(wo) {
+            $.ajax({
+              beforeSend: function() {
+                $('#btnCariWO').html('<i class="fa fa-spinner fa-spin"></i>');
+                $('#btnCariWO').attr('disabled', true);
+              },
+              url: '<?= base_url('api/h2/getWoNSC') ?>',
+              type: "POST",
+              data: wo,
+              cache: false,
+              dataType: 'JSON',
+              success: function(response) {
+                if (response.status == 'sukses') {
+                  form_.data = response.data;
+                  // if (form_.tampil_ppn == 1) {
+                  //   form_.label_harga = 'DPP';
+                  // } else {
+                  //   form_.label_harga = 'HET';
+                  // }
+                } else {
+                  alert(response.pesan);
+                }
+                $('#btnCariWO').html('<i class="fa fa-search"></i>');
+                $('#btnCariWO').attr('disabled', false);
+              },
+              error: function() {
+                alert("Something Went Wrong !");
+                $('#btnCariWO').html('<i class="fa fa-search"></i>');
+                $('#btnCariWO').attr('disabled', false);
+              }
+            });
+          }
+        </script>
+      <?php endif ?>
+  </section>
+  </div>

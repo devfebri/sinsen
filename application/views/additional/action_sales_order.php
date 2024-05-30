@@ -1,0 +1,1 @@
+<a href="dealer/h3_dealer_sales_order/detail?k=<?= $id ?>" class='btn btn-flat btn-xs btn-info'>View</a>

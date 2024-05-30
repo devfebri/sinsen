@@ -1,0 +1,63 @@
+<?php 
+$no = date('d/m/y_Hi');
+header("Content-type: application/force-download");
+header("Content-Disposition: attachment; filename=Report Promo Servis " .$no. ".xls");
+header("Pragma: no-cache");
+header("Expires: 0");
+header('Cache-Control: must-revalidate');
+header('Pragma: public');
+
+?>
+
+<table border="1">  
+	<?php $start_date_2 = date("d/m/Y", strtotime($start_date));
+			$end_date_2 = date("d/m/Y", strtotime($end_date)); ?>
+	<caption>Report Promo Servis <?php echo $start_date_2 ."-". $end_date_2?> <br> <?php echo $nama_dealer->row()->nama_dealer ?></caption>
+ 	<tr> 		
+ 		<td align="center"><b>No</b></td>
+		<td align="center"><b>No WO </b></td>
+ 		<td align="center"><b>No NJB</b></td>
+ 		<td align="center"><b>Tgl NJB</b></td>
+ 		<td align="center"><b>Nama Customer</b></td>
+		<td align="center"><b>No Mesin</b></td>
+		<td align="center"><b>No Rangka </b></td>
+ 		<td align="center"><b>Kode Jasa</b></td>
+		<td align="center"><b>Type Jasa</b></td>
+		<td align="center"><b>Deskripsi Jasa</b></td>
+ 		<td align="center"><b>Kode Promo</b></td>
+ 		<td align="center"><b>Nama Promo</b></td>
+		<td align="center"><b>Harga Jasa</b></td>
+ 		<td align="center"><b>Harga Jasa Setelah Diskon</b></td>
+	</tr>
+	
+<?php 
+ 	$nom=1;	
+	if($query_promo_servis->num_rows()>0){
+		foreach ($query_promo_servis->result() as  $row) {
+			echo "
+				<tr>
+					<td align='center'>$nom</td>
+					<td>$row->id_work_order</td>
+					<td>$row->no_njb</td>
+					<td>$row->tgl_njb</td>
+					<td>$row->nama_customer</td>
+					<td>$row->no_mesin</td>
+					<td>$row->no_rangka</td>
+					<td>$row->id_jasa</td>
+					<td>$row->id_type</td>
+					<td>$row->nama_jasa</td>
+					<td>$row->id_promo</td>
+					<td>$row->nama_promo</td>
+					<td>$row->harga</td>
+					<td>$row->subtotal</td>
+				</tr>
+			";
+ 		$nom++;
+ 		}
+	}else{
+		echo "<td colspan='14' style='text-align:center'> Maaf, Tidak Ada Data </td>";
+	}
+	?>
+</table>
+
+

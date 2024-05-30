@@ -1,0 +1,1 @@
+<a href="dealer/h3_dealer_input_stock_count_result/detail?id=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>

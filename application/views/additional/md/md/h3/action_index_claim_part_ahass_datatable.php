@@ -1,0 +1,1 @@
+<a href="h3/h3_md_claim_part_ahass_ke_ahm/detail?id_claim_part_ahass=<?= $id_claim_part_ahass ?>" class="btn btn-xs btn-flat btn-info">View</a>

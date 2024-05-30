@@ -1,0 +1,241 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+
+
+class Dashboard extends CI_Controller {
+	public function __construct()
+	{		
+		parent::__construct();		
+		//===== Load Database =====
+		$this->load->database();
+		$this->load->helper('url','string');    
+		
+		//===== Load Model =====
+		$this->load->model('m_admin');						
+	}
+	public function ajax(){
+		/* Database connection start */
+		
+		// $servername = "localhost";
+		// $username = "root";
+		// $password = "";
+		// $dbname = "dbs_honda_fix";
+
+		// $servername = 'localhost';
+		// $username = 'newmonju_puad';
+		// $password = 'Roti@2017';
+		// $dbname = 'newmonju_honda_coba';
+
+		$servername = 'localhost';
+		$username = 'sinarsen_root';
+		$password = 'success2019**';
+		$dbname = 'sinarsen_honda';
+
+
+		$conn = mysqli_connect($servername, $username, $password, $dbname) or die("Connection failed: " . mysqli_connect_error());
+
+		/* Database connection end */
+
+
+		// storing  request (ie, get/post) global array to a variable  
+		$requestData= $_REQUEST;
+
+
+		$columns = array( 
+				// datatable column index  => database column name
+					0 =>'id_tipe_kendaraan', 
+					1 => 'tipe_ahm'
+				);
+
+				// getting total number records without any search
+				$sql = "SELECT ms_tipe_kendaraan.id_tipe_kendaraan,ms_tipe_kendaraan.tipe_ahm,(SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan AND status = '1' AND tipe='RFS') AS ready";
+				$sql.=" FROM ms_tipe_kendaraan";								
+				$sql.=" WHERE 1=1";
+				$sql.=" GROUP BY ms_tipe_kendaraan.id_tipe_kendaraan";				
+				$sql.=" HAVING ready > 0";
+				$query=mysqli_query($conn, $sql);
+				$totalData = mysqli_num_rows($query);
+				$totalFiltered = $totalData;  // when there is no search parameter then total number rows = total number filtered rows.
+
+				$sql = "SELECT ms_tipe_kendaraan.id_tipe_kendaraan,ms_tipe_kendaraan.tipe_ahm,(SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan AND status = '1' AND tipe='RFS') AS ready";
+				$sql.=" FROM ms_tipe_kendaraan";								
+				$sql.=" WHERE 1=1";
+				if( !empty($requestData['search']['value']) ) {   // if there is a search parameter, $requestData['search']['value'] contains search parameter
+					$sql.=" AND (ms_tipe_kendaraan.id_tipe_kendaraan LIKE '".$requestData['search']['value']."%' ";    					
+					$sql.=" OR ms_tipe_kendaraan.tipe_ahm LIKE '".$requestData['search']['value']."%' )";
+				}
+				$sql.=" GROUP BY ms_tipe_kendaraan.id_tipe_kendaraan";				
+				$sql.=" HAVING ready > 0";
+				$query=mysqli_query($conn, $sql);
+				$totalFiltered = mysqli_num_rows($query); // when there is a search parameter then we have to modify total number filtered rows as per search result. 
+				$sql.=" ORDER BY ". $columns[$requestData['order'][0]['column']]."   ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+				/* $requestData['order'][0]['column'] contains colmun index, $requestData['order'][0]['dir'] contains order such as asc/desc  */	
+				$query=mysqli_query($conn, $sql);
+
+				$data = array();$no=1;
+				while($row=mysqli_fetch_array($query) ) {  // preparing an array
+
+					$cek_booking = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tipe_motor = '$row[id_tipe_kendaraan]' AND status = '2'")->row();
+          $cek_pl = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tipe_motor = '$row[id_tipe_kendaraan]' AND status = '3'")->row();
+					$cek_nrfs = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tipe_motor = '$row[id_tipe_kendaraan]' AND tipe = 'NRFS' AND status < 4")->row();
+          $cek_pinjaman = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode WHERE tipe_motor = '$row[id_tipe_kendaraan]' AND tipe = 'PINJAMAN' AND status < 4")->row();
+		      
+		      $cek_sl = $this->db->query("SELECT COUNT(id_modell) AS jum FROM tr_shipping_list 
+		                        WHERE no_shipping_list NOT IN (SELECT no_shipping_list FROM tr_scan_barcode WHERE no_shipping_list IS NOT NULL) 
+		                        AND id_modell = '$row[id_tipe_kendaraan]'")->row();
+
+		      // $cek_sl1 = $this->db->query("SELECT COUNT(id_modell) AS jum FROM tr_shipping_list WHERE tr_shipping_list.id_modell = '$row[id_tipe_kendaraan]'")->row();
+		      // $cek_sl2 = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode INNER JOIN ms_item ON tr_scan_barcode.tipe_motor = ms_item.id_tipe_kendaraan AND tr_scan_barcode.warna = ms_item.id_warna 
+		      //   WHERE tipe_motor = '$row[id_tipe_kendaraan]' AND ms_item.bundling <> 'ya'")->row();      
+		      $dt = $this->db->query("SELECT ms_tipe_kendaraan.tipe_ahm,ms_warna.warna,ms_item.bundling,ms_item.id_item_lama,ms_item.id_warna_lama FROM ms_item 
+                INNER JOIN ms_tipe_kendaraan ON ms_item.id_tipe_kendaraan = ms_tipe_kendaraan.id_tipe_kendaraan
+                INNER JOIN ms_warna ON ms_item.id_warna = ms_warna.id_warna             
+                WHERE ms_item.id_item = '$row[id_item]'");
+          if($dt->num_rows() > 0){
+            $r = $dt->row();
+            $tipe_ahm = $r->tipe_ahm;
+            $warna = $r->warna;
+            $bundling = $r->bundling;
+            $id_item_lama = $r->id_item_lama;
+            $id_warna_lama = $r->id_warna_lama;
+          }else{
+            $tipe_ahm="";$warna="";$bundling="";$id_item_lama="";$id_warna_lama="";
+          }
+		      $cek_sl1 = $this->db->query("SELECT COUNT(id_modell) AS jum FROM tr_shipping_list WHERE 
+              tr_shipping_list.id_modell = '$row[id_tipe_kendaraan]' AND tr_shipping_list.id_warna = '$row[id_warna]'")->row();
+          if($bundling != 'Ya'){              
+            $cek_sl2_1 = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode
+              LEFT JOIN ms_item ON tr_scan_barcode.id_item = ms_item.id_item  
+              WHERE tr_scan_barcode.tipe_motor = '$row[id_tipe_kendaraan]' AND tr_scan_barcode.warna = '$row[id_warna]'")->row();      
+            $cek_sl2_2 = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode
+              LEFT JOIN ms_item ON tr_scan_barcode.id_item = ms_item.id_item  
+              WHERE ms_item.id_item_lama = '$row[id_tipe_kendaraan]' AND ms_item.id_warna_lama = '$row[id_warna]'")->row();      
+            if(isset($cek_sl2_2->jum)){
+              $jumlah_sl = $cek_sl2_1->jum + $cek_sl2_2->jum; 
+            }else{
+              $jumlah_sl = $cek_sl2_1->jum;
+            }
+          }else{
+            $cek_sl2 = $this->db->query("SELECT COUNT(no_mesin) AS jum FROM tr_scan_barcode
+              LEFT JOIN ms_item ON tr_scan_barcode.id_item = ms_item.id_item  
+              WHERE tr_scan_barcode.tipe_motor = '$row[id_tipe_kendaraan]' AND tr_scan_barcode.warna = '$row[id_warna]'")->row();             
+            $jumlah_sl = $cek_sl2->jum;
+          }
+		      
+		      $cek_in1 = $this->db->query("SELECT SUM(tr_sipb.jumlah) AS jum FROM tr_sipb WHERE tr_sipb.id_tipe_kendaraan = '$row[id_tipe_kendaraan]'")->row();                
+		      $cek_in2 = $this->db->query("SELECT COUNT(tr_shipping_list.no_mesin) AS jum FROM tr_shipping_list WHERE tr_shipping_list.id_modell = '$row[id_tipe_kendaraan]'")->row();		      
+		      $sipb = 0;
+
+		      $total = $row['ready'] + $cek_booking->jum + $cek_pl->jum + $cek_nrfs->jum  + $cek_pinjaman->jum;
+		      // $total = $row['ready'];
+		      if($cek_in1->jum - $cek_in2->jum > 0){
+		        $rr = $cek_in1->jum - $cek_in2->jum;
+		      }else{
+		        $rr = 0;
+		      }
+
+		      $cek_sl2_jum=0;$cek_sl1_jum=0;
+	        if(isset($cek_sl1->jum)) $cek_sl1_jum = $cek_sl1->jum;
+	        if(isset($jumlah_sl)) $cek_sl2_jum = $jumlah_sl;      
+	        if($cek_sl1_jum - $cek_sl2_jum >= 0 AND $cek_item->bundling != 'Ya'){            
+	          $r2 = $cek_sl1_jum - $cek_sl2_jum;     
+	        }else{
+	          $r2 = 0;
+	        }             
+		      
+		      $stok_md = $total;
+
+		      // $cek_qty = $this->db->query("SELECT COUNT(tr_scan_barcode.no_mesin) AS jum FROM tr_penerimaan_unit_dealer_detail
+		      //     LEFT JOIN tr_penerimaan_unit_dealer ON tr_penerimaan_unit_dealer_detail.id_penerimaan_unit_dealer = tr_penerimaan_unit_dealer.id_penerimaan_unit_dealer               
+		      //     LEFT JOIN tr_scan_barcode ON tr_penerimaan_unit_dealer_detail.no_mesin = tr_scan_barcode.no_mesin
+		      //     LEFT JOIN ms_tipe_kendaraan ON tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan
+		      //     LEFT JOIN ms_warna ON tr_scan_barcode.warna = ms_warna.id_warna
+		      //     LEFT JOIN ms_dealer ON tr_penerimaan_unit_dealer.id_dealer = ms_dealer.id_dealer                
+		      //     WHERE tr_scan_barcode.tipe_motor = '$row[id_tipe_kendaraan]' AND tr_scan_barcode.status = '4'")->row();
+
+		      $cek_qty = $this->db->query("SELECT COUNT(tr_scan_barcode.no_mesin) AS jum FROM tr_penerimaan_unit_dealer_detail
+
+                LEFT JOIN tr_penerimaan_unit_dealer ON tr_penerimaan_unit_dealer_detail.id_penerimaan_unit_dealer = tr_penerimaan_unit_dealer.id_penerimaan_unit_dealer               
+
+                LEFT JOIN tr_scan_barcode ON tr_penerimaan_unit_dealer_detail.no_mesin = tr_scan_barcode.no_mesin
+
+                LEFT JOIN ms_tipe_kendaraan ON tr_scan_barcode.tipe_motor = ms_tipe_kendaraan.id_tipe_kendaraan
+
+                LEFT JOIN ms_warna ON tr_scan_barcode.warna = ms_warna.id_warna
+
+                LEFT JOIN ms_dealer ON tr_penerimaan_unit_dealer.id_dealer = ms_dealer.id_dealer                
+
+                WHERE tr_scan_barcode.tipe_motor = '$row[id_tipe_kendaraan]' 
+                AND tr_scan_barcode.status = '4'")->row();                     
+		      
+		     //  $cek_unfill = $this->db->query("SELECT SUM(tr_do_po_detail.qty_do) AS jum FROM tr_do_po 
+							// LEFT JOIN tr_do_po_detail ON tr_do_po.no_do = tr_do_po_detail.no_do
+							// INNER JOIN ms_item ON tr_do_po_detail.id_item = ms_item.id_item
+							// LEFT JOIN tr_picking_list ON tr_picking_list.no_do = tr_do_po.no_do
+							// WHERE tr_picking_list.no_picking_list NOT IN (SELECT no_picking_list FROM tr_surat_jalan WHERE no_picking_list IS NOT NULL) 
+							// AND ms_item.id_tipe_kendaraan = '$row[id_tipe_kendaraan]'")->row();
+		      $cek_unfill = $this->db->query("SELECT SUM(tr_do_po_detail.qty_do) AS jum FROM tr_do_po 
+
+                        LEFT JOIN tr_do_po_detail ON tr_do_po.no_do = tr_do_po_detail.no_do
+
+                        LEFT JOIN tr_picking_list ON tr_picking_list.no_do = tr_do_po.no_do
+                        INNER JOIN ms_item ON tr_do_po_detail.id_item = ms_item.id_item
+                        WHERE tr_picking_list.no_picking_list NOT IN (SELECT no_picking_list FROM tr_surat_jalan WHERE no_picking_list IS NOT NULL)                          
+                        AND ms_item.id_tipe_kendaraan = '$row[id_tipe_kendaraan]'
+                        ")->row();
+		      if(isset($cek_unfill->jum)){
+		      	$unfill = $cek_unfill->jum;
+		      }else{
+		      	$unfill	= 0;
+		      }
+
+		      $cek_in = $this->db->query("SELECT COUNT(tr_surat_jalan_detail.no_mesin) AS jum FROM tr_surat_jalan_detail INNER JOIN tr_surat_jalan ON tr_surat_jalan_detail.no_surat_jalan = tr_surat_jalan.no_surat_jalan                       
+		      				INNER JOIN ms_item ON tr_surat_jalan_detail.id_item = ms_item.id_item
+		              WHERE tr_surat_jalan.no_surat_jalan NOT IN (SELECT no_surat_jalan FROM tr_penerimaan_unit_dealer WHERE no_surat_jalan IS NOT NULL)
+		              AND ms_item.id_tipe_kendaraan = '$row[id_tipe_kendaraan]'")->row();
+		      
+		      $total_stock = $r2 + $stok_md + $cek_unfill->jum + $cek_in->jum + $cek_qty->jum;
+		      $stock_market = $stok_md + $cek_unfill->jum + $cek_in->jum + $cek_qty->jum;
+
+		      $cek_sales = $this->db->query("SELECT COUNT(tr_sales_order.no_mesin) AS jum FROM tr_sales_order INNER JOIN tr_scan_barcode ON tr_sales_order.no_mesin = tr_scan_barcode.no_mesin
+		              WHERE tr_scan_barcode.tipe_motor = '$row[id_tipe_kendaraan]'")->row();
+		      
+		      if($cek_sales->jum != 0){
+		        $stock_days = ceil(($stok_md / $cek_sales->jum) * 30);
+		      }else{
+		        $stock_days = ceil(($stok_md) * 30);
+		      } 
+		      if($total_stock > 0){
+						$no++;
+						$nestedData=array(); 
+
+						$nestedData[] = $row["id_tipe_kendaraan"];
+						$nestedData[] = $row["tipe_ahm"];
+						$nestedData[] = $rr;
+						$nestedData[] = $r2;
+						$nestedData[] = $stok_md;
+						$nestedData[] = $unfill;
+						$nestedData[] = $cek_in->jum;
+						$nestedData[] = $cek_qty->jum;
+						$nestedData[] = $total_stock;
+						$nestedData[] = $stock_market;
+						$nestedData[] = $cek_sales->jum;
+						$nestedData[] = $stock_days;
+						
+						$data[] = $nestedData;						
+					}		     				
+				}
+
+
+
+				$json_data = array(
+							"draw"            => intval( $requestData['draw'] ),   // for every request/draw by clientside , they send a number as a parameter, when they recieve a response/data they first check the draw number, so we are sending same number in draw. 
+							"recordsTotal"    => intval( $totalData ),  // total number of records
+							"recordsFiltered" => intval( $totalFiltered ), // total number of records after searching, if there is no searching then totalFiltered = totalData
+							"data"            => $data   // total data array
+							);
+
+				echo json_encode($json_data);  // send data as json format
+	}
+}

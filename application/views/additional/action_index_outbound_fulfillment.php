@@ -1,0 +1,1 @@
+<a href="<?= base_url("dealer/h3_dealer_outbound_form_for_fulfillment/detail?k={$id}") ?>" class="btn btn-xs btn-flat btn-info">View</a>

@@ -1,0 +1,1 @@
+<a href="h3/h3_md_po_checker/detail?id_checker=<?= $id_checker ?>" class="btn btn-xs btn-flat btn-info">View</a>

@@ -1,0 +1,8 @@
+[27-Jun-2020 10:18:13 Asia/Jakarta] PHP Fatal error:  Call to undefined function request_header() in /home/newmonju/public_html/tes/index.php on line 3
+[27-Jun-2020 10:18:30 Asia/Jakarta] PHP Fatal error:  Call to undefined function request_header() in /home/newmonju/public_html/tes/index.php on line 3
+[27-Jun-2020 10:18:52 Asia/Jakarta] PHP Fatal error:  Call to undefined function request_header() in /home/newmonju/public_html/tes/index.php on line 3
+[27-Jun-2020 10:18:58 Asia/Jakarta] PHP Fatal error:  Call to undefined function request_header() in /home/newmonju/public_html/tes/index.php on line 3
+[27-Jun-2020 10:22:47 Asia/Jakarta] PHP Fatal error:  Call to undefined function request_header() in /home/newmonju/public_html/tes/index.php on line 3
+[27-Jun-2020 10:28:51 Asia/Jakarta] PHP Fatal error:  Call to undefined function request_header() in /home/newmonju/public_html/tes/index.php on line 3
+[27-Jun-2020 10:30:28 Asia/Jakarta] PHP Fatal error:  Call to undefined function request_header() in /home/newmonju/public_html/tes/index.php on line 3
+[27-Jun-2020 10:31:13 Asia/Jakarta] PHP Parse error:  syntax error, unexpected '(', expecting ',' or ';' in /home/newmonju/public_html/tes/index.php on line 3

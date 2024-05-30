@@ -1,0 +1,89 @@
+<?php 
+function bln($a){
+  $bulan=$bl=$month=$a;
+  switch($bulan)
+  {
+    case"1":$bulan="Januari"; break;
+    case"2":$bulan="Februari"; break;
+    case"3":$bulan="Maret"; break;
+    case"4":$bulan="April"; break;
+    case"5":$bulan="Mei"; break;
+    case"6":$bulan="Juni"; break;
+    case"7":$bulan="Juli"; break;
+    case"8":$bulan="Agustus"; break;
+    case"9":$bulan="September"; break;
+    case"10":$bulan="Oktober"; break;
+    case"11":$bulan="November"; break;
+    case"12":$bulan="Desember"; break;
+  }
+  $bln = $bulan;
+  return $bln;
+}
+?>
+
+<base href="<?php echo base_url(); ?>" />
+<div class="content-wrapper">
+<!-- Content Header (Page header) -->
+<section class="content-header">
+  <h1>
+    <?php echo $title; ?>    
+  </h1>
+  <ol class="breadcrumb">
+    <li><a href="panel/home"><i class="fa fa-home"></i> Dashboard</a></li>    
+    <li class="">H1</li>
+    <li class="">Laporan</li>
+    <li class="active"><?php echo ucwords(str_replace("_"," ",$isi)); ?></li>
+  </ol>
+  </section>
+  <section class="content">
+    
+    
+
+    <div class="box box-default">
+      <div class="box-header with-border">        
+        <div class="row">
+          <div class="col-md-12">
+            <form class="form-horizontal" action="h1/rep_history_lokasi/download" id="frm" method="post" enctype="multipart/form-data">
+              <div class="box-body">                                                                              
+                <div class="form-group">                                    
+                  <label for="inputEmail3" class="col-sm-2 control-label">No Mesin</label>
+                  <div class="col-sm-3">                    
+                    <input type="text" autocomplete="off" required placeholder="No Mesin" name="no_mesin" id="no_mesin" class="form-control">
+                  </div>                                                                    
+                  <div class="col-sm-2">
+                    <button type="button" onclick="tampil_detail()" name="process" class="btn bg-maroon btn-block btn-flat"><i class="fa fa-eye"></i> View</button>                                                      
+                  </div>                             
+              </div><!-- /.box-body -->                           
+              <span id="showDetail"></span>
+            </form>
+            <!-- <div id="imgContainer"></div> -->
+          </div>
+        </div>
+      </div>
+    </div><!-- /.box -->
+</section>
+</div>
+<script type="text/javascript">
+function tampil_detail()
+{
+  var value={no_mesin:$("#no_mesin").val()}
+  $.ajax({
+       beforeSend: function() { $('#loading-status').show(); },
+       url:"<?php echo site_url('h1/rep_history_lokasi/getDetail')?>",
+       type:"POST",
+       data:value,
+       cache:false,
+       success:function(html){
+          $('#loading-status').hide();          
+          $('#showDetail').html(html);
+       },
+       statusCode: {
+    500: function() {
+      $('#loading-status').hide();
+      alert("Something Wen't Wrong");
+    }
+  }
+  });
+}
+</script>    
+    

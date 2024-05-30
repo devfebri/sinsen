@@ -1,0 +1,749 @@
+<?php if (isset($_GET['id'])) { ?>
+
+  <body onload="cek_user_edit()">
+  <?php } else { ?>
+    <div>
+
+      <body onload="start()">
+      <?php } ?>
+      <base href="<?php echo base_url(); ?>" />
+      <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+          <h1>
+            <?php echo $title; ?>
+          </h1>
+          <ol class="breadcrumb">
+            <li><a href="panel/home"><i class="fa fa-home"></i> Dashboard</a></li>
+            <li class="">Master Data</li>
+            <li class="">User</li>
+            <li class="active"><?php echo ucwords(str_replace("_", " ", $isi)); ?></li>
+          </ol>
+        </section>
+        <section class="content">
+          <?php
+          if ($set == "insert") {
+          ?>
+
+            <div class="box box-default">
+              <div class="box-header with-border">
+                <h3 class="box-title">
+                  <a href="master/user">
+                    <button <?php echo $this->m_admin->set_tombol($id_menu, $group, "select"); ?> class="btn bg-maroon btn-flat margin"><i class="fa fa-eye"></i> View Data</button>
+                  </a>
+                </h3>
+                <div class="box-tools pull-right">
+                  <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                  <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+              </div><!-- /.box-header -->
+              <div class="box-body">
+                <?php
+                if (isset($_SESSION['pesan']) && $_SESSION['pesan'] <> '') {
+                ?>
+                  <div class="alert alert-<?php echo $_SESSION['tipe'] ?> alert-dismissable">
+                    <strong><?php echo $_SESSION['pesan'] ?></strong>
+                    <button class="close" data-dismiss="alert">
+                      <span aria-hidden="true">&times;</span>
+                      <span class="sr-only">Close</span>
+                    </button>
+                  </div>
+                <?php
+                }
+                $_SESSION['pesan'] = '';
+
+                ?>
+                <div class="row">
+                  <div class="col-md-12">
+                    <form method="POST" role="form" enctype="multipart/form-data" action="master/user/save" class="form-horizontal form-groups-bordered">
+                      <div class="box-body">
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">MD/Dealer</label>
+                          <div class="col-sm-4">
+                            <select class="form-control" name="jenis_user" id="jenis_user" onchange="cek_user()">
+                              <option value="">- choose -</option>
+                              <option value="Main Dealer">Main Dealer</option>
+                              <option value="Dealer">Dealer</option>
+                            </select>
+                          </div>
+                          <span id="form_dealer">
+                            <label for="field-1" class="col-sm-2 control-label">Nama Dealer</label>
+                            <div class="col-sm-4">
+                              <select class="form-control select2" name="nama_dealer" id="id_dealer" onchange="cek_user()">
+                                <option value="">- choose -</option>
+                                <?php
+                                $dt_dealer = $this->m_admin->getSortCond("ms_dealer", "nama_dealer", "ASC");
+                                foreach ($dt_dealer->result() as $val) {
+                                  echo "
+                          <option value='$val->id_dealer'>$val->kode_dealer_md | $val->nama_dealer</option>;
+                          ";
+                                }
+                                ?>
+                              </select>
+                            </div>
+                          </span>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Jenis User</label>
+                          <div class="col-sm-4">
+                            <select class="form-control" name="jenis_user_bagian" id="jenis_user_bagian">
+                              <option value="">- choose -</option>
+                              <option value="ahass">AHASS</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Karyawan</label>
+                          <div class="col-sm-4">
+                            <select class="form-control select2" name="id_karyawan" id="id_karyawan">
+                              <option value="">- choose -</option>
+                              <!-- <?php
+                                    foreach ($dt_karyawan->result() as $val) {
+                                      echo "
+                        <option value='$val->id_karyawan_dealer'>$val->id_flp_md | $val->nama_lengkap</option>;
+                        ";
+                                    }
+                                    ?> -->
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Username</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control" id="field-1" placeholder="Username" name="username" required>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Password</label>
+                          <div class="col-sm-10">
+                            <input type="password" class="form-control" id="field-1" placeholder="Password" name="password" required>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Admin Password</label>
+                          <div class="col-sm-4">
+                            <input type="password" class="form-control" id="field-1" placeholder="Admin Password" name="admin_password">
+                          </div>
+
+                          <label for="field-1" class="col-sm-2 control-label">User Group</label>
+                          <div class="col-sm-4">
+                            <select class="form-control" name="id_user_group" id="id_user_group">
+                              <option value="">- choose -</option>
+                              <?php
+                              $dt_user_group = $this->db->query("SELECT * FROM ms_user_group WHERE jenis_user != 'Admin' AND jenis_user != 'Super Admin'");
+                              foreach ($dt_user_group->result() as $val) {
+                                echo "
+                        <option value='$val->id_user_group'>$val->user_group</option>;
+                        ";
+                              }
+                              ?>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Status</label>
+                          <div class="col-sm-4">
+                            <div id="label-switch" class="make-switch" data-on-label="<i class='entypo-check'></i>" data-off-label="<i class='entypo-cancel'></i>">
+                              <input type="checkbox" class="flat-red" name="active" value="1" checked>
+                              Active
+                            </div>
+                          </div>
+                          <label for="field-1" class="col-sm-2 control-label">Avatar</label>
+                          <div class="col-sm-2">
+                            <input type="file" name="avatar">
+                          </div>
+                        </div>
+                      </div>
+                      <div class="box-footer">
+                        <div class="col-sm-2">
+                        </div>
+                        <div class="col-sm-10">
+                          <button type="submit" name="save" value="save" class="btn btn-info btn-flat"><i class="fa fa-save"></i> Save</button>
+                          <button type="reset" class="btn btn-default btn-flat"><i class="fa fa-refresh"></i> Cancel</button>
+                        </div>
+                      </div><!-- /.box-footer -->
+
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div><!-- /.box -->
+
+          <?php
+          } elseif ($set == "edit") {
+            $row = $dt_user->row();
+          ?>
+
+            <div class="box box-default">
+              <div class="box-header with-border">
+                <h3 class="box-title">
+                  <a href="master/user">
+                    <button <?php echo $this->m_admin->set_tombol($id_menu, $group, "select"); ?> class="btn bg-maroon btn-flat margin"><i class="fa fa-eye"></i> View Data</button>
+                  </a>
+                </h3>
+                <div class="box-tools pull-right">
+                  <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                  <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+              </div><!-- /.box-header -->
+              <div class="box-body">
+                <div class="row">
+                  <div class="col-md-12">
+                    <form class="form-horizontal" action="master/user/update" method="post" enctype="multipart/form-data">
+                      <input type="hidden" name="id" value="<?php echo $row->id_user ?>" />
+                      <div class="box-body">
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">MD/Dealer</label>
+                          <div class="col-sm-4">
+                            <select class="form-control" name="jenis_user" id="jenis_user" onchange="cek_user()">
+                              <?php if ($row->jenis_user == 'Main Dealer') { ?>
+                                <option value="Main Dealer">Main Dealer</option>
+                                <option value="Dealer">Dealer</option>
+                                <option value="">- choose -</option>
+                              <?php } elseif ($row->jenis_user == 'Dealer') { ?>
+                                <option value="Dealer">Dealer</option>
+                                <option value="Main Dealer">Main Dealer</option>
+                                <option value="">- choose -</option>
+                              <?php } else { ?>
+                                <option value="">- choose -</option>
+                                <option value="Main Dealer">Main Dealer</option>
+                                <option value="Dealer">Dealer</option>
+                              <?php } ?>
+                            </select>
+                          </div>
+                          <span id="form_dealer">
+                            <label for="field-1" class="col-sm-2 control-label">Nama Dealer</label>
+                            <div class="col-sm-4">
+                              <select class="form-control select2" name="nama_dealer" id="id_dealer" onchange="cek_user()">
+                                <?php
+                                $dt    = $this->m_admin->getByID("ms_karyawan_dealer", "id_karyawan_dealer", $row->id_karyawan_dealer)->row();
+                                ?>
+                                <option value="<?php echo $dt->id_dealer ?>">
+                                  <?php
+                                  $dt_cust    = $this->m_admin->getByID("ms_dealer", "id_dealer", $dt->id_dealer)->row();
+                                  if (isset($dt_cust)) {
+                                    echo "$dt_cust->kode_dealer_md | $dt_cust->nama_dealer";
+                                  } else {
+                                    echo "- choose -";
+                                  }
+                                  ?>
+                                </option>
+                                <?php
+                                $dt_dealer  = $this->m_admin->getSortCond("ms_dealer", "nama_dealer", "ASC");
+                                foreach ($dt_dealer->result() as $val) {
+                                  echo "
+                          <option value='$val->id_dealer'>$val->kode_dealer_md | $val->nama_dealer</option>;
+                          ";
+                                }
+                                ?>
+                              </select>
+                            </div>
+                          </span>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Jenis User</label>
+                          <div class="col-sm-4">
+                            <select class="form-control" name="jenis_user_bagian" id="jenis_user_bagian">
+                              <option value="">- choose -</option>
+                              <option value="ahass" <?= $row->jenis_user_bagian == 'ahass' ? 'selected' : '' ?>>AHASS</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Karyawan</label>
+                          <div class="col-sm-4">
+                            <select class="form-control" name="id_karyawan" id="id_karyawan">
+                              <option value="<?php echo $row->id_karyawan_dealer ?>">
+                                <?php
+                                if ($row->jenis_user == 'Main Dealer') {
+                                  $dt_cust    = $this->m_admin->getByID("ms_karyawan", "id_karyawan", $row->id_karyawan_dealer)->row();
+                                  if (isset($dt_cust)) {
+                                    echo "$dt_cust->id_karyawan | $dt_cust->npk | $dt_cust->nama_lengkap";
+                                  } else {
+                                    echo "- choose -";
+                                  }
+                                } else {
+                                  $dt_cust    = $this->m_admin->getByID("ms_karyawan_dealer", "id_karyawan_dealer", $row->id_karyawan_dealer)->row();
+                                  if (isset($dt_cust)) {
+                                    echo "$dt_cust->id_karyawan_dealer | $dt_cust->id_flp_md | $dt_cust->nama_lengkap";
+                                  } else {
+                                    echo "- choose -";
+                                  }
+                                }
+                                ?>
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Username</label>
+                          <div class="col-sm-10">
+                            <input type="text" value="<?php echo $row->username ?>" class="form-control" id="field-1" placeholder="Username" name="username" required>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Password</label>
+                          <div class="col-sm-10">
+                            <input type="password" class="form-control" id="field-1" placeholder="Kosongkan jika tidak diubah" name="password">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <!-- <label for="field-1" class="col-sm-2 control-label">Admin Password</label>            
+                  <div class="col-sm-4">
+                    <input type="password" class="form-control" id="field-1" placeholder="Kosongkan jika tidak diubah" name="admin_password">
+                  </div> -->
+
+
+                          <label for="field-1" class="col-sm-2 control-label">User Group</label>
+                          <div class="col-sm-4">
+                            <select class="form-control" name="id_user_group" onchange="cek()" id="id_user_group">
+                              <option value="<?php echo $row->id_user_group ?>">
+                                <?php
+                                $dt_cust    = $this->m_admin->getByID("ms_user_group", "id_user_group", $row->id_user_group)->row();
+                                if (isset($dt_cust)) {
+                                  echo $dt_cust->user_group;
+                                } else {
+                                  echo "- choose -";
+                                }
+                                ?>
+                              </option>
+                              <?php
+                              $dt_user_group = $this->db->query("SELECT * FROM ms_user_group WHERE id_user_group != '$row->id_user_group' AND jenis_user != 'Admin' AND jenis_user != 'Super Admin'");
+                              foreach ($dt_user_group->result() as $val) {
+                                echo "
+                        <option value='$val->id_user_group'>$val->user_group</option>;
+                        ";
+                              }
+                              ?>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Status</label>
+                          <div class="col-sm-4">
+                            <div id="label-switch" class="make-switch" data-on-label="<i class='entypo-check'></i>" data-off-label="<i class='entypo-cancel'></i>">
+                              <?php
+                              if ($row->active == '1') {
+                              ?>
+                                <input type="checkbox" class="flat-red" name="active" value="1" checked>
+                              <?php } else { ?>
+                                <input type="checkbox" class="flat-red" name="active" value="1">
+                              <?php } ?>
+                              Active
+                            </div>
+                          </div>
+                          <label for="field-1" class="col-sm-2 control-label">Avatar</label>
+                          <div class="col-sm-3">
+                            <input type="file" name="avatar">
+                          </div>
+                          <div class="col-sm-2">
+                            <a href="#modal_foto" class="btn btn-primary" data-toggle="modal">
+                              Show</button>
+                            </a>
+
+                          </div>
+                        </div>
+                      </div>
+                      <div class="box-footer">
+                        <div class="col-sm-2">
+                        </div>
+                        <div class="col-sm-10">
+                          <button type="submit" name="process" value="edit" class="btn btn-info btn-flat"><i class="fa fa-edit"></i> Update</button>
+                          <button type="button" onclick="cek()" class="btn btn-default btn-flat"><i class="fa fa-refresh"></i> Cancel</button>
+                        </div>
+                      </div><!-- /.box-footer -->
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div><!-- /.box -->
+
+          <?php
+          } elseif ($set == "detail") {
+            $row = $dt_user->row();
+          ?>
+
+            <div class="box box-default">
+              <div class="box-header with-border">
+                <h3 class="box-title">
+                  <a href="master/user">
+                    <button <?php echo $this->m_admin->set_tombol($id_menu, $group, "select"); ?> class="btn bg-maroon btn-flat margin"><i class="fa fa-eye"></i> View Data</button>
+                  </a>
+                </h3>
+                <div class="box-tools pull-right">
+                  <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                  <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+              </div><!-- /.box-header -->
+              <div class="box-body">
+                <div class="row">
+                  <div class="col-md-12">
+                    <form class="form-horizontal" action="master/user/update" method="post" enctype="multipart/form-data">
+                      <input type="hidden" name="id" value="<?php echo $row->id_user ?>" />
+                      <div class="box-body">
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">MD/Dealer</label>
+                          <div class="col-sm-4">
+                            <select class="form-control" name="jenis_user" id="jenis_user" disabled onchange="cek_user()">
+                              <?php if ($row->jenis_user == 'Main Dealer') { ?>
+                                <option value="Main Dealer">Main Dealer</option>
+                                <option value="Dealer">Dealer</option>
+                                <option value="">- choose -</option>
+                              <?php } elseif ($row->jenis_user == 'Dealer') { ?>
+                                <option value="Dealer">Dealer</option>
+                                <option value="Main Dealer">Main Dealer</option>
+                                <option value="">- choose -</option>
+                              <?php } else { ?>
+                                <option value="">- choose -</option>
+                                <option value="Main Dealer">Main Dealer</option>
+                                <option value="Dealer">Dealer</option>
+                              <?php } ?>
+                            </select>
+                          </div>
+                          <span id="form_dealer">
+                            <label for="field-1" class="col-sm-2 control-label">Nama Dealer</label>
+                            <div class="col-sm-4">
+                              <select class="form-control select2" name="nama_dealer" disabled id="id_dealer" onchange="cek_user()">
+                                <?php
+                                $dt    = $this->m_admin->getByID("ms_karyawan_dealer", "id_karyawan_dealer", $row->id_karyawan_dealer)->row();
+                                ?>
+                                <option value="<?php echo $dt->id_dealer ?>">
+                                  <?php
+                                  $dt_cust    = $this->m_admin->getByID("ms_dealer", "id_dealer", $dt->id_dealer)->row();
+                                  if (isset($dt_cust)) {
+                                    echo "$dt_cust->kode_dealer_md | $dt_cust->nama_dealer";
+                                  } else {
+                                    echo "- choose -";
+                                  }
+                                  ?>
+                                </option>
+                                <?php
+                                $dt_dealer  = $this->m_admin->getSortCond("ms_dealer", "nama_dealer", "ASC");
+                                foreach ($dt_dealer->result() as $val) {
+                                  echo "
+                          <option value='$val->id_dealer'>$val->kode_dealer_md | $val->nama_dealer</option>;
+                          ";
+                                }
+                                ?>
+                              </select>
+                            </div>
+                          </span>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Jenis User</label>
+                          <div class="col-sm-4">
+                            <select class="form-control" name="jenis_user_bagian" id="jenis_user_bagian" readonly>
+                              <option value="">- choose -</option>
+                              <option value="ahass" <?= $row->jenis_user_bagian == 'ahass' ? 'selected' : '' ?>>AHASS</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Karyawan</label>
+                          <div class="col-sm-4">
+                            <select class="form-control" name="id_karyawan" disabled id="id_karyawan">
+                              <option value="<?php echo $row->id_karyawan_dealer ?>">
+                                <?php
+                                if ($row->jenis_user == 'Main Dealer') {
+                                  $dt_cust    = $this->m_admin->getByID("ms_karyawan", "id_karyawan", $row->id_karyawan_dealer)->row();
+                                  if (isset($dt_cust)) {
+                                    echo "$dt_cust->id_karyawan | $dt_cust->npk | $dt_cust->nama_lengkap";
+                                  } else {
+                                    echo "- choose -";
+                                  }
+                                } else {
+                                  $dt_cust    = $this->m_admin->getByID("ms_karyawan_dealer", "id_karyawan_dealer", $row->id_karyawan_dealer)->row();
+                                  if (isset($dt_cust)) {
+                                    echo "$dt_cust->id_karyawan_dealer | $dt_cust->id_flp_md | $dt_cust->nama_lengkap";
+                                  } else {
+                                    echo "- choose -";
+                                  }
+                                }
+                                ?>
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Username</label>
+                          <div class="col-sm-10">
+                            <input type="text" value="<?php echo $row->username ?>" disabled class="form-control" id="field-1" placeholder="Username" name="username" required>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Password</label>
+                          <div class="col-sm-10">
+                            <input type="password" class="form-control" id="field-1" disabled placeholder="Kosongkan jika tidak diubah" name="password">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <!-- <label for="field-1" class="col-sm-2 control-label">Admin Password</label>            
+                  <div class="col-sm-4">
+                    <input type="password" class="form-control" id="field-1" placeholder="Kosongkan jika tidak diubah" name="admin_password">
+                  </div> -->
+
+
+                          <label for="field-1" class="col-sm-2 control-label">User Group</label>
+                          <div class="col-sm-4">
+                            <select class="form-control" name="id_user_group" disabled onchange="cek()" id="id_user_group">
+                              <option value="<?php echo $row->id_user_group ?>">
+                                <?php
+                                $dt_cust    = $this->m_admin->getByID("ms_user_group", "id_user_group", $row->id_user_group)->row();
+                                if (isset($dt_cust)) {
+                                  echo $dt_cust->user_group;
+                                } else {
+                                  echo "- choose -";
+                                }
+                                ?>
+                              </option>
+                              <?php
+                              $dt_user_group = $this->db->query("SELECT * FROM ms_user_group WHERE id_user_group != '$row->id_user_group' AND jenis_user != 'Admin' AND jenis_user != 'Super Admin'");
+                              foreach ($dt_user_group->result() as $val) {
+                                echo "
+                        <option value='$val->id_user_group'>$val->user_group</option>;
+                        ";
+                              }
+                              ?>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label for="field-1" class="col-sm-2 control-label">Status</label>
+                          <div class="col-sm-4">
+                            <div id="label-switch" class="make-switch" data-on-label="<i class='entypo-check'></i>" data-off-label="<i class='entypo-cancel'></i>">
+                              <?php
+                              if ($row->active == '1') {
+                              ?>
+                                <input type="checkbox" readonly class="flat-red" name="active" value="1" checked>
+                              <?php } else { ?>
+                                <input type="checkbox" readonly class="flat-red" name="active" value="1">
+                              <?php } ?>
+                              Active
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div><!-- /.box -->
+
+          <?php
+          } elseif ($set == "view") {
+          ?>
+
+            <div class="box">
+              <div class="box-header with-border">
+                <h3 class="box-title">
+                  <a href="master/user/add">
+                    <button <?php echo $this->m_admin->set_tombol($id_menu, $group, "insert"); ?> class="btn bg-blue btn-flat margin"><i class="fa fa-plus"></i> Add New</button>
+                  </a>
+                </h3>
+                <div class="box-tools pull-right">
+                  <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                  <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-remove"></i></button>
+                </div>
+              </div><!-- /.box-header -->
+              <div class="box-body">
+                <?php
+                if (isset($_SESSION['pesan']) && $_SESSION['pesan'] <> '') {
+                ?>
+                  <div class="alert alert-<?php echo $_SESSION['tipe'] ?> alert-dismissable">
+                    <strong><?php echo $_SESSION['pesan'] ?></strong>
+                    <button class="close" data-dismiss="alert">
+                      <span aria-hidden="true">&times;</span>
+                      <span class="sr-only">Close</span>
+                    </button>
+                  </div>
+                <?php
+                }
+                $_SESSION['pesan'] = '';
+
+                ?>
+                <table id="example2" class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <th width="5%">No</th>
+                      <th>Username</th>
+                      <th>Fullname</th>
+                      <th>Jabatan</th>
+                      <th>Group</th>
+                      <th>Kode Dealer</th>
+                      <th>Nama Dealer</th>
+                      <!--               <th>Last Login IP</th>
+              <th>Last Login Date</th>
+              <th>Last Login Duration</th> -->
+                      <th width="13%">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php
+                    $no = 1;
+                    foreach ($dt_user->result() as $val) {
+                      if ($val->jenis_user == 'Dealer') {
+                        $user = $this->db->query("SELECT ms_karyawan_dealer.*,ms_divisi.divisi,ms_jabatan.jabatan,(SELECT nama_dealer FROM ms_dealer WHERE id_dealer=ms_karyawan_dealer.id_dealer) AS dealer,
+                (SELECT kode_dealer_md FROM ms_dealer WHERE id_dealer=ms_karyawan_dealer.id_dealer) AS kode_dealer FROM ms_karyawan_dealer                     
+                      LEFT JOIN ms_divisi ON ms_karyawan_dealer.id_divisi = ms_divisi.id_divisi
+                      LEFT JOIN ms_jabatan ON ms_karyawan_dealer.id_jabatan = ms_jabatan.id_jabatan 
+                      WHERE ms_karyawan_dealer.id_karyawan_dealer = '$val->id_karyawan_dealer'");
+                      } else {
+                        $user = $this->db->query("SELECT ms_karyawan.*,ms_divisi.divisi,ms_jabatan.jabatan,'MAIN DEALER' AS dealer,'' AS kode_dealer FROM ms_karyawan                     
+                      LEFT JOIN ms_divisi ON ms_karyawan.id_divisi = ms_divisi.id_divisi
+                      LEFT JOIN ms_jabatan ON ms_karyawan.id_jabatan = ms_jabatan.id_jabatan 
+                      WHERE ms_karyawan.id_karyawan = '$val->id_karyawan_dealer'");
+                      }
+
+                      if ($user->num_rows() > 0) {
+                        $u            = $user->row();
+                        $nama_lengkap = $u->nama_lengkap;
+                        $divisi       = $u->divisi;
+                        $jabatan      = $u->jabatan;
+                        $dealer       = $u->dealer;
+                        $kode_dealer       = $u->kode_dealer;
+                      } else {
+                        $nama_lengkap = "";
+                        $divisi       = "";
+                        $jabatan      = "";
+                        $dealer       = "";
+                        $kode_dealer = '';
+                      }
+                      if ($val->status == 'online') {
+                        $status = "<span class='label label-success'>online</span>";
+                      } else {
+                        $status = "<span class='label label-danger'>offline</span>";
+                      }
+                      echo "
+              <tr>
+                <td>$no</td>
+                <td>$val->username <br>$status</td>
+                <td>$nama_lengkap</td>               
+                <td>$jabatan</td>                                                          
+                <td>$val->user_group</td>";
+                      // <td>$val->last_login_ip</td>               
+                      // <td>$val->last_login_date</td>               
+                      // <td>$val->last_login_duration minutes</td>               
+                      echo "
+                  <td>$kode_dealer</td>
+                  <td>$dealer</td>
+                <td>"; ?>
+                      <a href="master/user/delete?id=<?php echo $val->id_user ?>"><button type="button" class="btn btn-danger btn-sm btn-flat" title="Delete" onclick="return confirm('Are you sure want to delete this data?')"><i class="fa fa-trash"></i></button></a>
+                      <a href="master/user/edit?id=<?php echo $val->id_user ?>"><button type='button' class="btn btn-info btn-sm btn-flat" title="Edit"><i class="fa fa-pencil"></i></button></a>
+                      <a href="master/user/view?id=<?php echo $val->id_user ?>"><button type='button' class="btn btn-primary btn-sm btn-flat" title="View"><i class="fa fa-eye"></i></button></a>
+                      </td>
+                      </tr>
+                    <?php
+                      $no++;
+                    }
+                    ?>
+                  </tbody>
+                </table>
+              </div><!-- /.box-body -->
+            </div><!-- /.box -->
+
+          <?php
+          }
+          ?>
+        </section>
+      </div>
+
+      <div class="modal fade" id="modal_foto">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+              <center>
+                <img src="assets/panel/images/user/<?php echo $row->avatar ?>" width='100%'>
+              </center>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <script type="text/javascript">
+        // $("#id_user_group").change(function(){
+        //   //var id_user_group = $("#id_user_group").val();  
+        //   alert("s"); 
+        // });
+      </script>
+      <script type="text/javascript">
+        function start() {
+          $("#form_dealer").hide();
+        }
+
+        function cek_user_edit() {
+          var jenis_user = $("#jenis_user").val();
+          var id_dealer = $("#id_dealer").val();
+          if (jenis_user == 'Main Dealer') {
+            $("#form_dealer").hide();
+          } else {
+            $("#form_dealer").show();
+          }
+        }
+
+        function cek_user() {
+          var jenis_user = $("#jenis_user").val();
+          var id_dealer = $("#id_dealer").val();
+          if (jenis_user == 'Main Dealer') {
+            $("#form_dealer").hide();
+          } else {
+            $("#form_dealer").show();
+          }
+          $.ajax({
+            url: "<?php echo site_url('master/user/get_slot') ?>",
+            type: "POST",
+            data: "jenis_user=" + jenis_user + "&id_dealer=" + id_dealer,
+            cache: false,
+            success: function(msg) {
+              $("#id_karyawan").html(msg);
+            }
+          })
+        }
+
+        function cek() {
+          var id_user_group = $("#id_user_group").val();
+          $.ajax({
+            url: "<?php echo site_url('master/user/get_user_group') ?>",
+            type: "POST",
+            data: "id_user_group=" + id_user_group,
+            cache: false,
+            success: function(msg) {
+              $("#id_user_level").html(msg);
+            }
+          })
+        }
+
+        function bulk_delete() {
+          var list_id = [];
+          $(".data-check:checked").each(function() {
+            list_id.push(this.value);
+          });
+          if (list_id.length > 0) {
+            if (confirm('Are you sure delete this ' + list_id.length + ' data?')) {
+              $.ajax({
+                type: "POST",
+                data: {
+                  id: list_id
+                },
+                url: "<?php echo site_url('master/user/ajax_bulk_delete') ?>",
+                dataType: "JSON",
+                success: function(data) {
+                  if (data.status) {
+                    window.location.reload();
+                  } else {
+                    alert('Failed.');
+                  }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                  alert('Error deleting data');
+                }
+              });
+            }
+          } else {
+            alert('no data selected');
+          }
+        }
+      </script>

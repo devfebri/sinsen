@@ -1,0 +1,1 @@
+<button onclick='return parts_inbound_form(<?= $data ?>)' class="btn btn-flat btn-xs btn-success" type='button' data-dismiss='modal'><i class="fa fa-check"></i></button>

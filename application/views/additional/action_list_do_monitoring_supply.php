@@ -1,0 +1,1 @@
+<button onclick='return open_list_do("<?= $id_sales_order ?>")' class="btn btn-flat btn-info btn-xs">View</button>

@@ -1,0 +1,1 @@
+<a href="h3/part/detail?id_part=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>

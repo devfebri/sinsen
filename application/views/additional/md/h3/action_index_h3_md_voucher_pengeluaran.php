@@ -1,0 +1,2 @@
+<a href="h3/h3_md_voucher_pengeluaran/detail?id_voucher_pengeluaran=<?= $id_voucher_pengeluaran ?>" class="btn btn-xs btn-flat btn-info btn-block">View</a>
+<a target='_blank' href="h3/h3_md_voucher_pengeluaran/cetak?id_voucher_pengeluaran=<?= $id_voucher_pengeluaran ?>" class="btn btn-xs btn-flat btn-info btn-block" style='margin-top: 10px;'>Cetak</a>

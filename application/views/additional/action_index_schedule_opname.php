@@ -1,0 +1,1 @@
+<a href="<?= base_url("dealer/h3_dealer_set_up_schedule_stock_opname/detail?id_schedule={$id}") ?>" class="btn btn-xs btn-flat btn-info">View</a>

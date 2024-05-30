@@ -1,0 +1,1 @@
+<a href="h3/h3_md_berita_acara_penerimaan_barang/detail?no_bapb=<?= $id ?>" class="btn btn-xs btn-flat btn-primary">View</a>

@@ -1,0 +1,284 @@
+<?php
+defined('BASEPATH') or exit('No direct script access allowed');
+
+class Execute_wo extends CI_Controller
+{
+  var $folder = "dealer";
+  var $page   = "execute_wo";
+  var $title  = "Execute Work Order";
+
+  public function __construct()
+  {
+    parent::__construct();
+    //---- cek session -------//		
+    $name = $this->session->userdata('nama');
+    if ($name == "") {
+      echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "panel'>";
+    }
+
+    //===== Load Database =====
+    $this->load->database();
+    $this->load->helper('url');
+    //===== Load Model =====
+    $this->load->model('m_admin');
+    $this->load->model('m_h2_master', 'm_h2');
+    $this->load->model('m_h2_work_order', 'm_wo');
+    //===== Load Library =====
+    $this->load->library('upload');
+    $this->load->library('form_validation');
+    $this->load->helper('tgl_indo');
+    $this->load->helper('terbilang');
+    $this->load->model('notifikasi_model', 'notifikasi');
+  }
+  protected function template($data)
+  {
+    $name = $this->session->userdata('nama');
+    if ($name == "") {
+      echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "panel'>";
+    } else {
+      $this->load->view('template/header', $data);
+      $this->load->view('template/aside');
+      $page = $this->page;
+      if (isset($data['mode'])) {
+        if ($data['mode'] == 'insert_wo') $page = 'sa_form';
+        if ($data['mode'] == 'detail_wo') $page = 'sa_form';
+      }
+      $this->load->view($this->folder . "/" . $page);
+      $this->load->view('template/footer');
+    }
+  }
+
+  public function index()
+  {
+    $data['isi']    = $this->page;
+    $data['title']  = $this->title;
+    $data['set']  = "index";
+    $filter = ['id_work_order_not_null' => 'ya', 'id_karyawan_dealer_not_null' => 'ya', 'status_wo_in' => "'pause', 'open','pending'"];
+    $data['wo'] = $this->m_wo->get_sa_form($filter);
+    $this->template($data);
+  }
+
+  public function send_wo_part_counter()
+  {
+    $data['isi']   = $this->page;
+    $data['title'] = 'Send WO to Parts Counter';
+    $data['set']   = "send_wo";
+    $data['mode']  = "send_wo";
+    $id_work_order = $this->input->get('id');
+
+    $filter['id_work_order'] = $id_work_order;
+    $sa_form = $this->m_wo->get_sa_form($filter);
+    if ($sa_form->num_rows() > 0) {
+      $data['wo'] = $sa_form->row();
+      $filter = [
+        'id_work_order' => $id_work_order,
+        'id_kirim_null' => 'ya',
+        'jenis_order' => 'reguler'
+      ];
+      // $data['parts'] = $this->m_h2->getPartsWO($filter)->result();
+      $parts = $this->m_h2->getPartsWO($filter)->result();
+      foreach ($parts as $val) {
+        $data['parts'][] = [
+          'id_part' => $val->id_part,
+          'id_part_int' => $val->id_part_int,
+          'id_gudang' => $val->id_gudang,
+          'nama_part' => $val->nama_part,
+          'id_rak' => $val->id_rak,
+          'kuantitas' => $val->qty,
+          'id_jasa' => $val->id_jasa,
+          'harga_saat_dibeli' => $val->harga,
+          'id_promo' => $val->id_promo,
+          'diskon_value' => $val->diskon_value,
+          'tipe_diskon' => $val->tipe_diskon,
+        ];
+      }
+      // send_json($data);
+      $this->template($data);
+    } else {
+      $_SESSION['pesan']   = "Data tidak ditemukan !";
+      $_SESSION['tipe']   = "danger";
+      echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/execute_wo'>";
+    }
+  }
+
+  function save_send_wo()
+  {
+    $tgl           = date("Y-m-d");
+    $login_id      = $this->session->userdata('id_user');
+    $id_dealer     = $this->m_admin->cari_dealer();
+    $id_kirim_part = $this->m_h2->get_id_kirim_part();
+    $id_work_order = $this->input->post('id_work_order');
+    $nomor_so = $this->input->post('nomor_so');
+    $filter = ['id_work_order' => $id_work_order];
+    $wo = $this->m_wo->get_sa_form($filter);
+    if ($wo->num_rows() == 0) {
+      $rsp = ['status' => 'error', 'pesan' => 'Data work order tidak ditemukan !'];
+      echo json_encode($rsp);
+      die();
+    } else {
+      $wo = $wo->row();
+    }
+    $parts         = $this->input->post('parts');
+
+    $ins_data     = [
+      'id_kirim_part' => $id_kirim_part,
+      'id_work_order' => $id_work_order,
+      'id_dealer'     => $id_dealer,
+      'nomor_so'      => $nomor_so,
+      'tgl_kirim'     => $tgl,
+      'created_at'    => waktu(),
+      'created_by'    => $login_id,
+    ];
+
+    // Skenario Picking Slip manual belum dibuat. Jadi Sementara Good Issue Dibuat Otomatis Dulu
+    if (1 == 1) {
+      $ins_data['good_issue_id'] = $this->m_wo->get_good_issue_id();
+      $ins_data['status']        = 'received';
+    }
+    // $result = ['ins_data' => $ins_data, 'upd_parts' => isset($upd_parts) ? $upd_parts : ''];
+    // echo json_encode($result);
+    // exit();
+    $this->db->trans_begin();
+    $this->db->insert('tr_h2_kirim_ke_part_counter', $ins_data);
+    foreach ($parts as $prt) {
+      $upd_part = ['id_kirim_part' => $id_kirim_part, 'nomor_so' => $nomor_so, 'sudah_terbuat_picking_slip' => 1];
+      $where = [
+        'id_work_order' => $id_work_order,
+        'id_part'       => $prt['id_part'],
+        'id_gudang'     => $prt['id_gudang'],
+        'id_jasa'       => $prt['id_jasa'],
+        'id_rak'        => $prt['id_rak']
+      ];
+      $this->db->update('tr_h2_wo_dealer_parts', $upd_part, $where);
+    }
+    if ($this->db->trans_status() === FALSE) {
+      $this->db->trans_rollback();
+      $rsp = [
+        'status' => 'error',
+        'pesan' => ' Something went wrong !'
+      ];
+    } else {
+      $this->db->trans_commit();
+
+      $this->notifikasi->insert([
+        'id_notif_kat' => $this->db->from('ms_notifikasi_kategori')->where('kode_notif', 'notif_send_part_wo')->get()->row()->id_notif_kat,
+        'judul'        => 'Kebutuhan Parts Work Order',
+        'pesan'        => "Terdapat Kebutuhan Parts Work Order : " . $id_work_order . ", dengan Nomor SO : " . $nomor_so,
+        'link'         => "dealer/h3_dealer_sales_order/detail?k=$nomor_so",
+        'id_referensi' => $nomor_so,
+        'id_dealer'    => $this->m_admin->cari_dealer(),
+        'show_popup'   => false,
+      ]);
+      $rsp = [
+        'status' => 'sukses',
+        'link' => base_url('dealer/execute_wo')
+      ];
+      $_SESSION['pesan']   = "Data berhasil di proses";
+      $_SESSION['tipe']   = "success";
+      // echo "<meta http-equiv='refresh' content='0; url=".base_url()."dealer/mutasi_stok/add'>";
+    }
+    echo json_encode($rsp);
+  }
+
+  public function detail_wo()
+  {
+    $data['isi']   = $this->page;
+    $data['title'] = 'Detail Work Order';
+    $data['mode']  = 'detail_wo';
+    $data['set']   = "form";
+    $id_work_order    = $this->input->get('id');
+
+    $filter['id_work_order'] = $id_work_order;
+    $sa_form = $this->m_wo->get_sa_form($filter);
+    if ($sa_form->num_rows() > 0) {
+      $row                     = $data['row_wo'] = $sa_form->row();
+      $data['tipe_coming']     = explode(',', $row->tipe_coming);
+      $data['pkp'] = $row->pkp;
+      $filter['id_work_order'] = $id_work_order;
+      $data['details']         = $this->m_h2->wo_detail($filter);
+      $data['estimasi_waktu_daftar'] = $row->estimasi_waktu_daftar;
+      // send_json($data);
+      $this->template($data);
+    } else {
+      $_SESSION['pesan']   = "Data not found !";
+      $_SESSION['tipe']   = "danger";
+      echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/execute_wo'>";
+    }
+  }
+
+  function closed_wo()
+  {
+    $id_work_order = $this->input->get('id');
+    $cek = $this->db->get_where('tr_h2_wo_dealer', ['id_work_order' => $id_work_order]);
+    if ($cek->num_rows() > 0) {
+      $data_wo = $cek->row();
+      $data = [
+        'status' => 'closed',
+        'closed_at' => waktu_full(),
+        'closed_by' => user()->id_user,
+        'saran_mekanik' => $this->input->get('saran_mekanik')
+      ];
+      // send_json($data);
+
+      $filter = [
+        'id_work_order' => $id_work_order,
+        'select' => 'id_booking',
+        'not_exists_picking_slip' => true,
+        'group_by' => 'id_booking'
+      ];
+      $cek_hlo_belum_selesai = $this->m_wo->getHLOWOParts($filter);
+      if ($cek_hlo_belum_selesai->num_rows() > 0) {
+        $_SESSION['pesan']   = "Masih ada parts HLO yang belum selesai di proses !";
+        $_SESSION['tipe']   = "danger";
+        echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/execute_wo'>";
+        die();
+      }
+      $filter = [
+        'id_work_order' => $id_work_order,
+        'select' => 'nomor_so',
+        'jenis_order' => 'reguler',
+        'nomor_so_null' => true
+      ];
+      $cek_reg_belum_selesai = $this->m_wo->getWOParts($filter);
+      if ($cek_reg_belum_selesai->num_rows() > 0) {
+        $_SESSION['pesan']   = "Masih ada parts reguler yang belum selesai di proses !";
+        $_SESSION['tipe']   = "danger";
+        echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/execute_wo'>";
+        die();
+      }
+
+      $filter = [
+        'id_work_order' => $id_work_order,
+        'select' => 'id_booking',
+        'not_exists_picking_slip' => true,
+        'group_by' => 'id_booking'
+      ];
+      $cek_hlo_belum_selesai = $this->m_wo->getHLOWOParts($filter);
+      if ($cek_hlo_belum_selesai->num_rows() > 0) {
+        $_SESSION['pesan']   = "Masih ada parts HLO yang belum selesai di proses !";
+        $_SESSION['tipe']   = "danger";
+        echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/execute_wo'>";
+        die();
+      }
+
+      $this->db->trans_begin();
+      $upd_sa = ['status_monitor' => 'selesai'];
+      $this->db->update('tr_h2_sa_form', $upd_sa, ['id_sa_form' => $data_wo->id_sa_form]);
+      $this->db->update('tr_h2_wo_dealer', $data, ['id_work_order' => $id_work_order]);
+      if ($this->db->trans_status() === FALSE) {
+        $this->db->trans_rollback();
+        echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/execute_wo'>";
+      } else {
+        $this->db->trans_commit();
+        $_SESSION['pesan']   = "Proses perubahan status Work Order berhasil";
+        $_SESSION['tipe']   = "success";
+        echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/execute_wo'>";
+      }
+    } else {
+      $_SESSION['pesan']   = "Data tidak ditemukan !";
+      $_SESSION['tipe']   = "danger";
+      echo "<meta http-equiv='refresh' content='0; url=" . base_url() . "dealer/execute_wo'>";
+    }
+    // send_json($rsp);
+  }
+}

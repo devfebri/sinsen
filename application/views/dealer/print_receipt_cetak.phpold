@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<!-- <html lang="ar"> for arabic only -->
+    <?php 
+        function mata_uang($a){
+            return number_format($a, 0, ',', '.');
+        } 
+    ?>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Cetak</title>
+    <style>
+        @media print {
+            @page {
+                sheet-size: 210mm 297mm;
+              /*  margin-left: 1cm;
+                margin-right: 1cm;
+                margin-bottom: 1cm;
+                margin-top: 1cm;*/
+            }
+            .text-center{text-align: center;}
+            .table {
+                    width: 100%;
+                    max-width: 100%;
+                    border-collapse: collapse;
+                   /*border-collapse: separate;*/
+                }
+            .table-bordered tr td {
+                    border: 1px solid black;
+                    padding-left: 6px;
+                    padding-right: 6px;
+                }
+            body{
+                font-family: "Arial";
+                font-size: 11pt;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<?php 
+if ($set=='print_tjs'){ 
+?>
+ <p style="font-size: 8pt">
+    <?php 
+        $id_dealer     = $this->m_admin->cari_dealer();
+        $dealer = $this->db->query("SELECT ms_dealer.*,kelurahan,kode_pos, kecamatan,kabupaten FROM ms_dealer 
+            LEFT JOIN ms_kelurahan ON ms_kelurahan.id_kelurahan=ms_dealer.id_kelurahan
+            LEFT JOIN ms_kecamatan ON ms_kecamatan.id_kecamatan=ms_kelurahan.id_kecamatan
+            LEFT JOIN ms_kabupaten ON ms_kabupaten.id_kabupaten=ms_kecamatan.id_kabupaten
+            WHERE id_dealer='$id_dealer'")->row();
+    ?>
+    <b><?= $dealer->nama_dealer ?></b><br>
+    <?= $dealer->alamat ?><br>
+    <?= $dealer->kabupaten.' '.$dealer->kode_pos ?><br>
+    Telepon/Fax : <?= $dealer->no_telp.'/' ?>
+  <br>
+ </p>
+ <table class="table table-borderedx">
+    <tr>
+      <td width="100%" align="center" colspan="5"><b>Kwitansi Tanda Jadi</b><br>&nbsp;</td>
+    </tr>
+    <tr>
+        <td width="20%">Kode Pelanggan</td>
+        <td>: <?= $row->id_customer ?></td>
+        <td width="10%"></td>
+        <td width="23%">Tanggal Pembayaran</td>
+        <td>: <?= $row->tgl_pembayaran ?></td>
+    </tr>
+    <tr>
+        <td>No KTP</td>
+        <td>: <?= $row->no_ktp ?></td>
+        <td></td>
+        <td>No SPK</td>
+        <td>: <?= $row->no_spk ?></td>
+    </tr>
+    <tr>
+        <td>Alamat</td>
+        <td>: <?= $row->alamat ?></td>
+        <td></td>
+        <td>Sales People ID</td>
+        <td>: <?= $row->id_sales_people ?></td>
+    </tr>
+    <tr>
+        <td colspan="5">&nbsp;</td>
+    </tr>
+    <tr>
+        <td>Telah Terima Dari</td>
+        <td>: <?= $row->nama_konsumen ?></td>
+    </tr>
+    <tr>
+        <td>Sejumlah</td>
+        <td>: <?= mata_uang_rp($row->amount) ?></td>
+    </tr>
+    <tr>
+        <td>Terbilang</td>
+        <td colspan="4">: <?= to_word($row->amount) ?> rupiah</td>
+    </tr>
+    <tr>
+        <td>Keterangan</td>
+        <td colspan="4">: <?= $row->note ?></td>
+    </tr>
+  </table>
+  <br><br>
+  <table class="table">
+      <tr>
+          <td width="70%"></td>
+          <td align="center">Jambi, <?= $row->tgl_pembayaran ?><br>
+            Penerima,
+            <br><br><br><br>
+            ( Kepala Kasir )
+          </td>
+      </tr>
+  </table>
+<?php } ?>
+
+<?php 
+if ($set=='print_dp'){ 
+?>
+<p style="font-size: 8pt">
+    <?php 
+        $id_dealer     = $this->m_admin->cari_dealer();
+        $dealer = $this->db->query("SELECT ms_dealer.*,kelurahan,kode_pos, kecamatan,kabupaten FROM ms_dealer 
+            LEFT JOIN ms_kelurahan ON ms_kelurahan.id_kelurahan=ms_dealer.id_kelurahan
+            LEFT JOIN ms_kecamatan ON ms_kecamatan.id_kecamatan=ms_kelurahan.id_kecamatan
+            LEFT JOIN ms_kabupaten ON ms_kabupaten.id_kabupaten=ms_kecamatan.id_kabupaten
+            WHERE id_dealer='$id_dealer'")->row();
+    ?>
+    <b><?= $dealer->nama_dealer ?></b><br>
+    <?= $dealer->alamat ?><br>
+    <?= $dealer->kabupaten.' '.$dealer->kode_pos ?><br>
+    Telepon/Fax : <?= $dealer->no_telp.'/' ?>
+  <br>
+ </p>
+ <table class="table table-bordereds">
+    <tr>
+      <td width="100%" align="center" colspan="6"><b>Kwitansi Down Payment</b><br>&nbsp;</td>
+    </tr>
+    <tr>
+        <td width="20%">Kode Pelanggan</td>
+        <td width="2%">:</td><td><?= $row->id_customer ?></td>
+        <td width="8%"></td>
+        <td width="23%">Tanggal Pembayaran</td>
+        <td width="25%">: <?= $row->tgl_pembayaran ?></td>
+    </tr>
+    <tr>
+        <td>No KTP</td>
+        <td>:</td><td><?= $row->no_ktp ?></td>
+        <td></td>
+        <td>No SPK</td>
+        <td>: <?= $row->no_spk ?></td>
+    </tr>
+    <tr>
+        <td>Alamat</td>
+        <td style="vertical-align: top">:</td><td><?= $row->alamat ?></td>
+        <td></td>
+        <td style="vertical-align: top">Sales People ID</td>
+        <td style="vertical-align: top;">: <?= $row->id_sales_people ?></td>
+    </tr>
+    <tr>
+        <td colspan="6">&nbsp;</td>
+    </tr>
+    <tr>
+        <td>Telah Terima Dari</td>
+        <td colspan="5">: <?= $row->nama_konsumen ?></td>
+    </tr>
+    <tr>
+        <td>Uang Sejumlah</td>
+        <td colspan="5">: <?= mata_uang_rp($row->amount) ?></td>
+    </tr>
+    <tr>
+        <td>Terbilang</td>
+        <td colspan="5">: <?= to_word($row->amount) ?> rupiah</td>
+    </tr>
+    <tr>
+        <td>Kendaraan</td>
+        <td colspan="5">: <?= $row->tipe_ahm.'/'.$row->warna ?></td>
+    </tr>
+    <tr>
+        <td>Keterangan</td>
+        <td colspan="5">: <?= $row->note ?></td>
+    </tr>
+  </table>
+  <p>Cara Pembayaran :</p>
+    <table class="table table-borderedx">
+        <tr>
+            <td  style="border-bottom: 1px solid black;width: 20%">Keterangan</td>
+            <td  style="border-bottom: 1px solid black;width: 15%">Nominal</td>
+            <td  style="border-bottom: 1px solid black;width: 10%">Tanggal</td>
+            <td  style="border-bottom: 1px solid black;width: 25%">No. BG / Cek</td>
+            <td  style="border-bottom: 1px solid black;width: 25%">Nama Bank</td>
+        </tr>
+        <?php $dbt_bayar = $this->db->query("SELECT tr_invoice_dp_receipt_detail.*,bank FROm tr_invoice_dp_receipt_detail
+                LEFT JOIN ms_bank ON tr_invoice_dp_receipt_detail.id_bank=ms_bank.id_bank
+                WHERE tr_invoice_dp_receipt_detail.id_receipt_dp='$row->id_receipt_dp'
+                ")->result();
+        foreach ($dbt_bayar as $dt) { 
+            if($dt->metode_penerimaan=='cash')$metode='Cash';
+            if($dt->metode_penerimaan=='bg_cek')$metode='BG / Cek';
+            if($dt->metode_penerimaan=='kredit_transfer')$metode='Kredit/Transfer';
+            ?>
+            <tr>
+                <td><?= $metode ?></td>
+                <td><?= mata_uang_rp($dt->nominal) ?></td>
+                <td><?= $dt->tgl_terima ?></td>
+                <td><?= $dt->no_bg_cek ?></td>
+                <td><?= $dt->bank ?></td>
+            </tr>
+        <?php } ?>
+    </table>
+  <br><br>
+  <table class="table">
+      <tr>
+          <td width="70%"></td>
+          <td align="center">Jambi, <?= $row->tgl_pembayaran ?><br>
+            Penerima,
+            <br><br><br><br>
+            ( Kepala Kasir )
+          </td>
+      </tr>
+  </table>
+<?php } ?>
+
+<?php 
+if ($set=='print_pelunasan'){ 
+?>
+<p style="font-size: 8pt">
+    <?php 
+        $id_dealer     = $this->m_admin->cari_dealer();
+        $dealer = $this->db->query("SELECT ms_dealer.*,kelurahan,kode_pos, kecamatan,kabupaten FROM ms_dealer 
+            LEFT JOIN ms_kelurahan ON ms_kelurahan.id_kelurahan=ms_dealer.id_kelurahan
+            LEFT JOIN ms_kecamatan ON ms_kecamatan.id_kecamatan=ms_kelurahan.id_kecamatan
+            LEFT JOIN ms_kabupaten ON ms_kabupaten.id_kabupaten=ms_kecamatan.id_kabupaten
+            WHERE id_dealer='$id_dealer'")->row();
+    ?>
+    <b><?= $dealer->nama_dealer ?></b><br>
+    <?= $dealer->alamat ?><br>
+    <?= $dealer->kabupaten.' '.$dealer->kode_pos ?><br>
+    Telepon/Fax : <?= $dealer->no_telp.'/' ?>
+  <br>
+ </p>
+ <table class="table table-bordereds">
+    <tr>
+      <td width="100%" align="center" colspan="6"><b>Kwitansi Pelunasan</b><br>&nbsp;</td>
+    </tr>
+    <tr>
+        <td width="20%">Kode Pelanggan</td>
+        <td width="2%">:</td><td><?= $row->id_customer ?></td>
+        <td width="8%"></td>
+        <td width="23%">Tanggal Pembayaran</td>
+        <td width="25%">: <?= $row->tgl_pembayaran ?></td>
+    </tr>
+    <tr>
+        <td>No KTP</td>
+        <td>:</td><td><?= $row->no_ktp ?></td>
+        <td></td>
+        <td>No SPK</td>
+        <td>: <?= $row->no_spk ?></td>
+    </tr>
+    <tr>
+        <td>Alamat</td>
+        <td style="vertical-align: top">:</td><td><?= $row->alamat ?></td>
+        <td></td>
+        <td style="vertical-align: top">Sales People ID</td>
+        <td style="vertical-align: top;">: <?= $row->id_sales_people ?></td>
+    </tr>
+    <tr>
+        <td colspan="6">&nbsp;</td>
+    </tr>
+    <tr>
+        <td>Telah Terima Dari</td>
+        <td colspan="5">: <?= $row->nama_konsumen ?></td>
+    </tr>
+    <?php $dbt_bayar = $this->db->query("SELECT tr_invoice_pelunasan_receipt_detail.*,bank FROm tr_invoice_pelunasan_receipt_detail
+                LEFT JOIN ms_bank ON tr_invoice_pelunasan_receipt_detail.id_bank=ms_bank.id_bank
+                WHERE tr_invoice_pelunasan_receipt_detail.id_receipt_pelunasan='$row->id_receipt_pelunasan'
+                ")->result();
+        $amount = 0;
+        foreach ($dbt_bayar as $rs) {
+            $amount+=$rs->nilai;
+        }
+    ?>
+    <tr>
+        <td>Uang Sejumlah</td>
+        <td colspan="5">: <?= mata_uang_rp($amount) ?></td>
+    </tr>
+    <tr>
+        <td>Terbilang</td>
+        <td colspan="5">: <?= to_word($amount) ?> rupiah</td>
+    </tr>
+    <tr>
+        <td>Kendaraan</td>
+        <td colspan="5">: <?= $row->tipe_ahm.'/'.$row->warna ?></td>
+    </tr>
+    <tr>
+        <td>Keterangan</td>
+        <td colspan="5">: <?= $row->note ?></td>
+    </tr>
+  </table>
+  <p>Cara Pembayaran :</p>
+    <table class="table table-borderedx">
+        <tr>
+            <td  style="border-bottom: 1px solid black;width: 20%">Keterangan</td>
+            <td  style="border-bottom: 1px solid black;width: 15%;text-align: right;">Nominal&nbsp;&nbsp;&nbsp;</td>
+            <td  style="border-bottom: 1px solid black;width: 10%">Tanggal</td>
+            <td  style="border-bottom: 1px solid black;width: 25%">No. BG / Cek</td>
+            <td  style="border-bottom: 1px solid black;width: 25%">Nama Bank</td>
+        </tr>
+        <?php 
+        foreach ($dbt_bayar as $dt) { 
+            if($dt->metode_penerimaan=='cash')$metode='Cash';
+            if($dt->metode_penerimaan=='bg_cek')$metode='BG / Cek';
+            if($dt->metode_penerimaan=='kredit_transfer')$metode='Kredit/Transfer';
+            ?>
+            <tr>
+                <td><?= $metode ?></td>
+                <td align="right"><?= mata_uang_rp($dt->nilai) ?>&nbsp;&nbsp;&nbsp;</td>
+                <td><?= $dt->tgl_cek_giro ?></td>
+                <td><?= $dt->no_cek_giro ?></td>
+                <td><?= $dt->bank ?></td>
+            </tr>
+        <?php } ?>
+    </table>
+  <br><br>
+  <table class="table">
+      <tr>
+          <td width="70%"></td>
+          <td align="center">Jambi, <?= $row->tgl_pembayaran ?><br>
+            Penerima,
+            <br><br><br><br>
+            ( Kepala Kasir )
+          </td>
+      </tr>
+  </table>
+<?php } ?>
+
+</body>
+</html>

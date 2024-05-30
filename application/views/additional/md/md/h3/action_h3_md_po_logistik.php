@@ -1,0 +1,1 @@
+<a href="h3/h3_md_po_logistik/detail?id_po_logistik=<?= $id_po_logistik ?>" class="btn btn-flat btn-xs btn-info">View</a>

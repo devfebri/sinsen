@@ -1,0 +1,1 @@
+<button class="btn btn-flat btn-info btn-xs" onclick='return pilih_open_view_surat_jalan_ahm("<?= $no_bapb ?>")'>View</button>

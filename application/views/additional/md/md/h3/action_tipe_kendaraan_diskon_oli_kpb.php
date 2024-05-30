@@ -1,0 +1,1 @@
+<button <?= $selected == 1 ? 'disabled' : '' ?> class="btn btn-xs btn-flat btn-success" type='button' onclick='return pilih_tipe_kendaraan_diskon_oli_kpb(<?= $data ?>)' data-dismiss='modal'><i class="fa fa-check"></i></button>

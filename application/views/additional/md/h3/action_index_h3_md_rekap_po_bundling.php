@@ -1,0 +1,1 @@
+<a href="h3/h3_md_rekap_po_bundling/detail?id=<?= $id_rekap ?>" class="btn btn-xs btn-flat btn-info">View</a>

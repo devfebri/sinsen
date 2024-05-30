@@ -1,0 +1,1 @@
+<button <?= $data['qty_belum_scan'] == 0 ? 'disabled' : '' ?> onclick='return pilih_action_scan_picking_list_parts(<?= json_encode($data) ?>)' data-dismiss='modal' class="btn btn-xs btn-flat btn-success" type="button"><i class="fa fa-check"></button>

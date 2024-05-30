@@ -1,0 +1,9 @@
+[11-Feb-2018 15:06:18 UTC] PHP Warning:  system() has been disabled for security reasons in /home/newmonju/public_html/HONDA/assets/get_data/tes.php on line 5
+[12-Mar-2018 03:14:48 UTC] PHP Warning:  mysqli_connect(): (HY000/1045): Access denied for user 'root'@'localhost' (using password: NO) in /home/newmonju/public_html/HONDA/assets/get_data/connect.php on line 2
+[12-Mar-2018 03:14:56 UTC] PHP Warning:  mysqli_connect(): (HY000/1045): Access denied for user 'root'@'localhost' (using password: NO) in /home/newmonju/public_html/HONDA/assets/get_data/connect.php on line 2
+[12-Mar-2018 03:15:05 UTC] PHP Warning:  system() has been disabled for security reasons in /home/newmonju/public_html/HONDA/assets/get_data/tes.php on line 5
+[01-Sep-2018 04:18:05 UTC] PHP Warning:  mysqli_connect(): (HY000/1045): Access denied for user 'root'@'localhost' (using password: NO) in /home/newmonju/public_html/HONDA/assets/get_data/connect.php on line 2
+[01-Sep-2018 04:18:11 UTC] PHP Warning:  system() has been disabled for security reasons in /home/newmonju/public_html/HONDA/assets/get_data/tes.php on line 5
+[01-Sep-2018 04:18:11 UTC] PHP Warning:  mysqli_connect(): (HY000/1045): Access denied for user 'root'@'localhost' (using password: NO) in /home/newmonju/public_html/HONDA/assets/get_data/connect.php on line 2
+[01-Sep-2018 04:19:37 UTC] PHP Warning:  mysqli_connect(): (HY000/1045): Access denied for user 'root'@'localhost' (using password: NO) in /home/newmonju/public_html/HONDA/assets/get_data/connect.php on line 2
+[01-Sep-2018 04:20:25 UTC] PHP Warning:  mysqli_connect(): (HY000/1045): Access denied for user 'root'@'localhost' (using password: NO) in /home/newmonju/public_html/HONDA/assets/get_data/connect.php on line 2

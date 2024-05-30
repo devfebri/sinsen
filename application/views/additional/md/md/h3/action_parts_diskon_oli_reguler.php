@@ -1,0 +1,1 @@
+<button <?= $selected == 1 ? 'disabled' : '' ?> class="btn btn-xs btn-flat btn-success" type='button' onclick='return pilih_parts_diskon_oli_reguler(<?= $data ?>)' data-dismiss='modal'><i class="fa fa-check"></i></button>

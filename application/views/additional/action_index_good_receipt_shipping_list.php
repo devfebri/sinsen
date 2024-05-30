@@ -1,0 +1,1 @@
+<a href="<?= base_url("dealer/h3_dealer_good_receipt/detail?id={$id}") ?>" class="btn btn-xs btn-flat btn-info">View</a>

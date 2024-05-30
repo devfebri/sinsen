@@ -1,0 +1,29 @@
+<?php
+
+
+
+class Mokita_model extends CI_Model
+{
+
+  function cek_sales_order_from_sinsengo($filter, $from = '')
+  {
+    if (count($filter) > 0) {
+      $this->db->select("prospek.leads_id,spk.no_hp,so.tgl_pengiriman,so.no_mesin,spk.no_mesin_spk,'$from' process_from");
+      $this->db->join("tr_spk spk", "spk.no_spk=so.no_spk");
+      $this->db->join("tr_prospek prospek", "prospek.id_customer=spk.id_customer");
+      $this->db->where("prospek.input_from", "sinsengo");
+      if (isset($filter['no_mesin'])) {
+        $this->db->where("so.no_mesin", $filter['no_mesin']);
+      }
+      if (isset($filter['no_spk'])) {
+        $this->db->where("spk.no_spk", $filter['no_spk']);
+      }
+      $this->db->limit(1);
+      $get_leads = $this->db->get("tr_sales_order so")->row();
+
+      if ($get_leads != null) {
+        return $get_leads;
+      }
+    }
+  }
+}

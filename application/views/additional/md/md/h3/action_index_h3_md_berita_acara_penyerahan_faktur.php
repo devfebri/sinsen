@@ -1,0 +1,2 @@
+<a href="h3/h3_md_berita_acara_penyerahan_faktur/cetak_bap?no_bap=<?= $no_bap ?>" class="btn btn-xs btn-flat btn-info">Cetak BAP</a>
+<a href="h3/h3_md_berita_acara_penyerahan_faktur/pengembalian?no_bap=<?= $no_bap ?>" class="btn btn-xs btn-flat btn-primary" style='margin-top: 10px;'>Pengembalian</a>

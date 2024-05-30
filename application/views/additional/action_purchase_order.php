@@ -1,0 +1,1 @@
+<a href="dealer/h3_dealer_purchase_order/detail?id=<?= $po_id ?>"><?= $po_id ?></a>

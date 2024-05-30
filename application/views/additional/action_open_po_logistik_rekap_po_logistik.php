@@ -1,0 +1,1 @@
+<a onclick='return view_modal_po_logistik("<?= $dokumen_nrfs_id ?>")'><?= $dokumen_nrfs_id ?></a>

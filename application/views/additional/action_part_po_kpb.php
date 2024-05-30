@@ -1,0 +1,1 @@
+<button class="btn btn-xs btn-flat btn-success" type='button' onclick='return pilih_part_po_kpb(<?= $data ?>)' data-dismiss='modal'><i class="fa fa-check"></i></button>

@@ -1,0 +1,1 @@
+<button data-dismiss='modal' onClick='return pilih_part_oli(<?= $data ?>)' class="btn btn-flat btn-success btn-xs"><i class="fa fa-check"></i></button>

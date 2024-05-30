@@ -1,0 +1,186 @@
+<?php
+function mata_uang($a)
+{
+  if (preg_match("/^[0-9,]+$/", $a)) $a = str_replace(',', '', $a);
+  return number_format($a, 0, ',', '.');
+}
+?>
+<?php if ($jenis == "prospek") { ?>
+  <table class="table table-bordered table-hover myTable1">
+    <thead>
+      <tr>
+        <th>Tipe Kendaraan</th>
+        <th>Warna</th>
+        <th>Qty</th>
+        <th>Tahun</th>
+        <th>Total Harga Per Unit</th>
+        <th>Total Harga Per Type-Warna</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php
+      $total = 0;
+      $no = 1;
+      foreach ($detail->result() as $rs) {
+        $cek = $this->m_admin->getByID("tr_prospek_gc", "id_prospek_gc", $rs->id_prospek_gc);
+        if ($cek->num_rows() > 0) {
+          $rt = $cek->row();
+          if ($rt->jenis == "Instansi") {
+            $tipe = "Instansi";
+          } else {
+            $tipe = "Customer Umum";
+          }
+        }
+        $cek_bbn = $this->db->query("SELECT * FROM ms_bbn_dealer WHERE id_tipe_kendaraan = '$rs->id_tipe_kendaraan'");
+        if ($cek_bbn->num_rows() > 0) {
+          $te = $cek_bbn->row();
+          if ($tipe == 'Instansi') {
+            $biaya_bbn = $te->biaya_instansi;
+          } else {
+            $biaya_bbn = $te->biaya_bbn;
+          }
+        } else {
+          $biaya_bbn = 0;
+        }
+
+        $item = $this->db->query("SELECT * FROM ms_item WHERE id_tipe_kendaraan = '$rs->id_tipe_kendaraan' AND id_warna = '$rs->id_warna'");
+        if ($item->num_rows() > 0) {
+          $ty = $item->row();
+          $id_item = $ty->id_item;
+        } else {
+          $id_item = "";
+        }
+
+        if ($tipe == "Instansi") {
+          $cek_id = $this->db->query("SELECT * FROM tr_prospek_gc WHERE id_prospek_gc = '$id'")->row()->id_kelompok_harga;
+          $id_kelompok_harga = (isset($cek_id)) ? $cek_id : "";
+          $cek_harga = $this->db->query("SELECT * FROM ms_kelompok_md 
+          INNER JOIN ms_kelompok_harga ON ms_kelompok_md.id_kelompok_harga = ms_kelompok_harga.id_kelompok_harga 
+          WHERE ms_kelompok_md.id_item = '$id_item' AND ms_kelompok_harga.target_market = '$tipe' AND ms_kelompok_md.id_kelompok_harga = '$id_kelompok_harga' 
+          ORDER BY start_date DESC LIMIT 0,1");
+        } else {
+          $cek_harga = $this->db->query("SELECT * FROM ms_kelompok_md 
+          INNER JOIN ms_kelompok_harga ON ms_kelompok_md.id_kelompok_harga = ms_kelompok_harga.id_kelompok_harga 
+          WHERE ms_kelompok_md.id_item = '$id_item' AND ms_kelompok_harga.target_market = '$tipe' ORDER BY start_date DESC LIMIT 0,1");
+        }
+        if ($cek_harga->num_rows() > 0) {
+          $ts = $cek_harga->row();
+          $harga_jual = $ts->harga_jual;
+        } else {
+          $harga_jual = 0;
+        }
+
+        $harga    = floor($harga_jual / 1.1);
+        $ppn      = floor(0.1 * $harga);
+        $harga_on = $harga_jual + $biaya_bbn;
+        $harga_tunai = $harga_on;
+
+        $harga_asli = $harga_jual + $biaya_bbn;
+
+      ?>
+        <tr>
+          <td><?= $rs->id_tipe_kendaraan . " | " . $rs->tipe_ahm ?></td>
+          <td><?= $rs->id_warna . " | " . $rs->warna ?></td>
+          <td><?= $rs->qty ?></td>
+          <td><?= $rs->tahun ?></td>
+          <td align="right"><?= mata_uang($harga_asli) ?></td>
+          <td align="right"><?= mata_uang($grand = $rs->qty * $harga_asli) ?></td>
+          <td>
+            <input type="hidden" name="jumlah_detail" value="<?php echo $detail->num_rows() ?>">
+            <input type="hidden" name="id_tipe_kendaraan2_<?php echo $no ?>" value="<?php echo $rs->id_tipe_kendaraan ?>">
+            <input type="hidden" name="id_warna2_<?php echo $no ?>" value="<?php echo $rs->id_warna ?>">
+            <input type="hidden" name="qty2_<?php echo $no ?>" value="<?php echo $rs->qty ?>">
+            <input type="hidden" name="tahun2_<?php echo $no ?>" value="<?php echo $rs->tahun ?>">
+            <input type="hidden" name="total_unit_<?php echo $no ?>" value="<?php echo $harga_asli ?>">
+            <input type="hidden" name="total_harga_<?php echo $no ?>" value="<?php echo $grand ?>">
+
+            <button type="button" class="btn btn-danger btn-xs btn-flat" title="Add" onclick="delDetail(<?= $rs->id_prospek_gc_kendaraan ?>)"><i class="fa fa-trash"></i></button>
+            <button type="button" class="btn btn-warning btn-flat btn-xs" data-toggle="modal" data-target=".modal_edit" id="<?php echo $rs->id_prospek_gc_kendaraan ?>" onclick="edit_popup('<?php echo $rs->id_prospek_gc_kendaraan ?>')"><i class="fa fa-edit"></i></button>
+          </td>
+        </tr>
+      <?php
+        $no++;
+        $total += $grand;
+      }
+      ?>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td>
+
+          <select class="form-control select3" name="id_tipe_kendaraan" id="id_tipe_kendaraan_gc" onchange="getWarna_gc()">
+            <?php if ($dt_tipe->num_rows() > 0) : ?>
+              <option value="">- choose -</option>
+              <?php foreach ($dt_tipe->result() as $rs) : ?>
+                <option value="<?= $rs->id_tipe_kendaraan ?>"><?= $rs->id_tipe_kendaraan ?> | <?= $rs->tipe_ahm ?></option>
+              <?php endforeach ?>
+            <?php endif ?>
+          </select>
+        </td>
+        <td>
+          <select class="form-control select2" name="id_warna" id="id_warna_gc"></select>
+        </td>
+        <td>
+          <input type="text" autocomplete="off" class="form-control" id="qty_gc" placeholder="QTY">
+        </td>
+        <td>
+          <input type="text" autocomplete="off" class="form-control" id="tahun_gc" placeholder="Tahun">
+        </td>
+        <td></td>
+        <td></td>
+        <td>
+          <button type="button" class="btn btn-primary btn-xs btn-flat" title="Add" onclick="addDetail()"><i class="fa fa-plus"></i></button>
+
+        </td>
+      </tr>
+      <tr>
+        <td colspan="5"></td>
+        <td align='right'><b><?php echo mata_uang($total) ?></b></td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+<?php } else { ?>
+  <table class="table table-bordered table-hover myTable1">
+    <thead>
+      <tr>
+        <th>Tipe Kendaraan</th>
+        <th>Warna</th>
+        <th>Qty</th>
+        <th>Tahun</th>
+        <th>Total Harga Per Unit</th>
+        <th>Total Harga Per Type-Warna</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php
+      $g = 0;
+      foreach ($detail->result() as $isi) {
+        $cari_bbn = $this->m_admin->getByID("tr_spk_gc_detail", "no_spk_gc", $isi->no_spk_gc);
+        $bbn = ($cari_bbn->num_rows() > 0) ? $cari_bbn->row()->biaya_bbn : "";
+        $harga = ($cari_bbn->num_rows() > 0) ? $cari_bbn->row()->harga : "";
+        $detail2 = $this->db->query("SELECT tr_spk_gc_kendaraan.*,ms_tipe_kendaraan.tipe_ahm,ms_warna.warna FROM tr_spk_gc_kendaraan
+          LEFT JOIN ms_tipe_kendaraan on tr_spk_gc_kendaraan.id_tipe_kendaraan = ms_tipe_kendaraan.id_tipe_kendaraan
+          LEFT JOIN ms_warna ON tr_spk_gc_kendaraan.id_warna = ms_warna.id_warna
+          WHERE no_spk_gc='$isi->no_spk_gc' AND ms_tipe_kendaraan.id_tipe_kendaraan = '$isi->id_tipe_kendaraan'")->row();
+
+        $total_bbn = $bbn * $isi->qty;
+        echo "
+      <tr>
+        <td>$isi->tipe_ahm</td>
+        <td>$isi->warna</td>
+        <td>$isi->qty</td>
+        <td>$detail2->tahun_produksi</td>
+        <td>" . mata_uang($harga_unit = $detail2->total_unit) . "</td>
+        <td>" . mata_uang($ga = $harga_unit * $isi->qty) . "</td>
+      </tr>";
+        $g += $ga;
+      }
+      ?>
+      <tr>
+        <td colspan="5"></td>
+        <td><?php echo mata_uang($g) ?></td>
+      </tr>
+    </tbody>
+  <?php } ?>

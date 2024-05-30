@@ -1,0 +1,1 @@
+<button <?=  ( $this->input->post('id_part') != null && in_array($id_part, $this->input->post('id_part')) ) ? 'disabled' : '' ?> class="btn btn-xs btn-flat btn-success" type='button' onclick='return pilih_lokasi_rak_penerimaan_manual(<?= $data ?>)' data-dismiss='modal'><i class="fa fa-check"></i></button>

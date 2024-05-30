@@ -1,0 +1,1 @@
+<button data-dismiss='modal' onClick='return pilih_filter_kabupaten_kota_customer_h23(<?= $data ?>)' class="btn btn-flat btn-success btn-xs"><i class="fa fa-check"></i></button>

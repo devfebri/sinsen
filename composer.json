@@ -1,0 +1,23 @@
+{
+    "require": {
+        "peppeocchi/php-cron-scheduler": "2.*",
+        "nesbot/carbon": "1.*",
+        "phpoffice/phpspreadsheet": "1.8.2",
+        "robmorgan/phinx": "^0.11.7"
+    },
+    "config": {
+        "platform-check": false,
+        "allow-plugins": {
+            "kylekatarnls/update-helper": true
+        }
+    },
+    "scripts": {
+        "db:create": "./vendor/bin/phinx create --",
+        "db:migrate": "./vendor/bin/phinx migrate -v",
+        "db:migrate:valid": "./vendor/bin/phinx migrate --dry-run",
+        "db:rollback": "./vendor/bin/phinx rollback",
+        "db:status": "./vendor/bin/phinx status",
+        "db:seed:create": "./vendor/bin/phinx seed:create --",
+        "db:seed": "./vendor/bin/phinx seed:run --"
+    }
+}

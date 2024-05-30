@@ -1,0 +1,2 @@
+<a style='margin-bottom: 5px;' href="<?= base_url("dealer/h3_dealer_inbound_form_for_parts_return/detail?id={$id}") ?>" class="btn btn-xs btn-flat btn-info">View</a>
+<a style='margin-bottom: 5px;' href="<?= base_url("dealer/h3_dealer_inbound_form_for_parts_return/cetak_report_summary?id={$id}") ?>" class="btn btn-xs btn-flat btn-success">Report</a>

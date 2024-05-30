@@ -1,0 +1,1 @@
+<a href="h3/h3_md_pembatalan_registrasi_bg/detail?id_cek_giro=<?= $id_cek_giro ?>" class="btn btn-xs btn-flat btn-info">View</a>

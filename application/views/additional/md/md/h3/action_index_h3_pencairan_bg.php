@@ -1,0 +1,1 @@
+<a href="h3/h3_md_pencairan_bg/detail?id_penerimaan_pembayaran=<?= $id_penerimaan_pembayaran ?>" class="btn btn-xs btn-flat btn-info">View</a>

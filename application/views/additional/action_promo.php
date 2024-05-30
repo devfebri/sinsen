@@ -1,0 +1,1 @@
+<a href="dealer/h3_dealer_promo/detail?id_promo=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>

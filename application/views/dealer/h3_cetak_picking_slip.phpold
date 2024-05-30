@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title><?= $picking_slip->nomor_ps ?></title>
+        <style>
+            @media print {
+                @page {
+                    sheet-size: 210mm 297mm;
+                    /*  margin-left: 1cm;
+                    margin-right: 1cm;
+                    margin-bottom: 1cm;
+                    margin-top: 1cm;*/
+                }
+                .text-center {
+                    text-align: center;
+                }
+                .table {
+                    width: 100%;
+                    max-width: 100%;
+                    border-collapse: collapse;
+                    /*border-collapse: separate;*/
+                }
+                .table-bordered tr td {
+                    border: 1px solid black;
+                    padding-left: 6px;
+                    padding-right: 6px;
+                }
+                body {
+                    font-family: "Arial";
+                    font-size: 11pt;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <table class="table table-bordereds">
+            <tr>
+                <td><?= strtoupper($dealer->nama_dealer) ?></td>
+            </tr>
+            <tr>
+                <td><?= $dealer->alamat ?></td>
+            </tr>
+            <tr>
+                <td><?= $dealer->kabupaten ?></td>
+            </tr>
+            <tr>
+                <td><?= $dealer->provinsi ?></td>
+            </tr>
+            <tr>
+                <td><?= $dealer->no_telp ?></td>
+            </tr>
+        </table>
+        <table class="table table-borderedx" style='margin-bottom: 15px;'>
+            <tr>
+                <td style='text-align:center; font-size: 22px;'>Picking Slip</td>
+            </tr>
+        </table>
+        <table class="table table-borderedx">
+            <tr>
+                <td width='22%'>No. Picking</td>
+                <td width='1%'>:</td>
+                <td width='30%'><?= $picking_slip->nomor_ps ?></td>
+                <td width='15%'>Nama</td>
+                <td width='1%'>:</td>
+                <td><?= $picking_slip->nama_pembeli ?></td>
+            </tr>
+            <tr>
+                <td width='22%'>No. Sales Order</td>
+                <td width='1%'>:</td>
+                <td width='30%'><?= $picking_slip->nomor_so ?></td>
+                <td width='15%'>No. HP</td>
+                <td width='1%'>:</td>
+                <td><?= $picking_slip->no_hp_pembeli ?></td>
+            </tr>
+            <tr>
+                <td width='22%'>Tanggal Sales Order</td>
+                <td width='1%'>:</td>
+                <td width='30%'><?= $picking_slip->tanggal_so ?></td>
+                <td width='15%'>Alamat</td>
+                <td width='1%'>:</td>
+                <td><?= $picking_slip->alamat_pembeli ?></td>
+            </tr>
+            <tr>
+                <td colspan='3'></td>
+                <td width='15%'>No. Polisi</td>
+                <td width='1%'>:</td>
+                <td><?= $picking_slip->no_polisi ?></td>
+            </tr>
+        </table>
+        <style>
+            table.table-sm{
+                font-size: 12px;
+            }
+            tr.header td{
+                border-bottom: 2px solid black;
+                border-top: 2px solid black;
+            }
+        </style>
+        <table style='margin-top: 20px; margin-bottom: 50px;' class="table table-borderedx table-sm">
+            <tr class='header'>
+                <td width='5%'>No.</td>
+                <td width='16%'>Nomor Part</td>
+                <td width='34%'>Deskripsi Part</td>
+                <td width='15%'>Gudang</td>
+                <td width='10%'>Rak</td>
+                <td width='10%' class='text-center'>Qty</td>
+                <td width='10%' class='text-center'>Qty Return</td>
+            </tr>
+            <?php $index = 1; foreach ($parts as $part): ?>
+            <tr>
+                <td><?= $index ?>.</td>
+                <td><?= $part->id_part ?></td>
+                <td><?= $part->nama_part ?></td>
+                <td><?= $part->id_gudang ?></td>
+                <td><?= $part->id_rak ?></td>
+                <td class='text-center'><?= $part->kuantitas ?></td>
+                <td class='text-center'><?= $part->kuantitas ?></td>
+            </tr>
+            <?php $index++; endforeach; ?>
+        </table>
+        <footer style='position: absolute; bottom: 0'>
+            <span><?= $picking_slip->nomor_ps ?> - Dicetak : <?= $user ?> - <?= date('d-M-Y H:i:s') ?></span>
+        </footer>
+    </body>
+</html>

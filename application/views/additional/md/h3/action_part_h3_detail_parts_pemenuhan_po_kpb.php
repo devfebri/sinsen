@@ -1,0 +1,1 @@
+<input type="text" class="form-control" value='<?= $id_part_h3 ?>' readonly onclick='showPartH3Modal("<?= $id_detail ?>", "<?= $tipe_produksi ?>")'/>

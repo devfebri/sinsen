@@ -1,0 +1,1 @@
+<button onclick='return pilih_gudang_lokasi_rak(<?= $data ?>)' data-dismiss='modal' class="btn btn-xs btn-flat btn-success" type="button"><i class="fa fa-check"></button>

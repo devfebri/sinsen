@@ -1,0 +1,1 @@
+<button onclick='return view_stock_lokasi_temporary(<?= $id ?>)' class="btn btn-xs btn-flat btn-info" type="button">View</button>

@@ -1,0 +1,1 @@
+<a href="h3/h3_md_ms_ongkos_angkut_part/detail?id_vendor=<?= $id_vendor ?>" class="btn btn-xs btn-flat btn-info">View</a>

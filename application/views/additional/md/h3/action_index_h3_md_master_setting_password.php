@@ -1,0 +1,1 @@
+<a href="h3/h3_md_ms_setting_menu_password/detail?id=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>

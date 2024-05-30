@@ -1,0 +1,1 @@
+<button onclick='return open_view_modal_rak_lokasi("<?= $id_part ?>")' class="btn btn-flat btn-xs btn-info">View</button>

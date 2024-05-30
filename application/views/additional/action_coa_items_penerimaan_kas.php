@@ -1,0 +1,1 @@
+<button onclick='pilih_coa_items_penerimaan_kas(<?= $data ?>)' class="btn btn-xs btn-flat btn-success" type='button' data-dismiss='modal'><i class="fa fa-check"></i></button>

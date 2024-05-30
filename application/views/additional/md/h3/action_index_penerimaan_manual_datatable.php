@@ -1,0 +1,2 @@
+<a href="h3/h3_md_penerimaan_manual/detail?id_penerimaan_manual=<?= $id_penerimaan_manual ?>" class="btn btn-xs btn-flat btn-info">View</a>
+<a style='margin-top: 10px;' href="h3/h3_md_penerimaan_manual/cetak?id_penerimaan_manual=<?= $id_penerimaan_manual ?>" class="btn btn-xs btn-flat btn-info">Cetak Penerimaan</a>

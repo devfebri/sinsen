@@ -1,0 +1,205 @@
+<?php
+defined('BASEPATH') or exit('No direct script access allowed');
+
+class M_h1_dealer_cdb extends CI_Model
+{
+  public function __construct()
+  {
+    parent::__construct();
+    $this->load->database();
+  }
+
+  function getCDB($filter = NULL)
+  {
+    $id_dealer = $filter['id_dealer'];
+    $where = "WHERE spk.id_dealer = '$id_dealer' ";
+
+    if (isset($filter['no_spk'])) {
+      if ($filter['no_spk'] != '') {
+        $where .= " AND spk.no_spk='{$filter['no_spk']}'";
+      }
+    }
+    if (isset($filter['id_cdb'])) {
+      if ($filter['id_cdb'] != '') {
+        $where .= " AND cdb.id_cdb='{$filter['id_cdb']}'";
+      }
+    }
+    if (isset($filter['document_is_null'])) {
+      $where .= " AND cdb.document IS NULL";
+    }
+    if (isset($filter['search'])) {
+      $search = $filter['search'];
+      if ($search != '') {
+        $where .= " AND (spk.no_ktp LIKE '%$search%'
+                            OR spk.nama_konsumen LIKE '%$search%'
+                            ) 
+            ";
+      }
+    }
+
+    $order = '';
+    if (isset($filter['order'])) {
+      $order = $filter['order'];
+      if ($order != '') {
+        if ($filter['order_column'] == 'history') {
+          $order_column = ['spk.no_spk_gc', 'spk.nama_npwp', 'spk.no_npwp', 'spk.alamat', 'spk.status', NULL];
+        }
+        $order_clm  = $order_column[$order['0']['column']];
+        $order_by   = $order['0']['dir'];
+        $order = " ORDER BY $order_clm $order_by ";
+      } else {
+        $order .= " ORDER BY spk.created_at DESC ";
+      }
+    }
+
+    $limit = '';
+    if (isset($filter['limit'])) {
+      $limit = $filter['limit'];
+    }
+
+    return $this->db->query("SELECT cdb.*,spk.no_ktp,spk.nama_konsumen
+    FROM tr_cdb cdb
+    JOIN tr_spk spk ON spk.no_spk=cdb.no_spk
+		$where
+    $order
+    $limit
+    ");
+  }
+
+  function updateCDBSTNK($post, $spk)
+  {
+    $f_jenis_pembelian = ['id' => $post['jenis_pembelian_id'], 'cek_referensi' => true];
+    $jenis_beli = $this->m_master->getJenisPembelian($f_jenis_pembelian);
+
+    $f_agama = ['id_agama' => $post['master_agama_id'], 'cek_referensi' => true];
+    $agama = $this->m_master->getAgama($f_agama);
+
+    $f_pdk = ['id_pendidikan' => $post['pendidikan_id'], 'cek_referensi' => true];
+    $pendidikan = $this->m_master->getPendidikan($f_pdk);
+
+    $filter = ['id_merk_sebelumnya' => $post['motorcycle_brand_id'], 'cek_referensi' => true];
+    $brand = $this->m_master->getMotorCycleBrand($filter);
+
+    $filter = ['id_jenis_sebelumnya' => $post['motorcycle_type_id'], 'cek_referensi' => true];
+    $type = $this->m_master->getMotorType($filter);
+
+    $filter = ['id' => $post['pengguna_kendaraan_id'], 'cek_referensi' => true];
+    $pgn = $this->m_master->getPenggunaKendaraan($filter);
+
+    $filter = ['id' => $post['pengguna_kendaraan_id'], 'cek_referensi' => true];
+    $pgn = $this->m_master->getPenggunaKendaraan($filter);
+
+    $filter = ['id' => $post['master_status_rumah_id'], 'cek_referensi' => true];
+    $sts_rumah = $this->m_master->getStatusRumah($filter);
+
+    $filter = ['id_pekerjaan' => $post['pekerjaan_id'], 'cek_referensi' => true];
+    $pekerjaan = $this->m_master->getPekerjaan($filter);
+
+    $filter = ['id_pengeluaran_bulan' => $post['pengeluaran_id'], 'cek_referensi' => true];
+    $pengeluaran = $this->m_master->getPengeluaran($filter);
+
+    $filter = ['id' => $post['jenis_penjualan_id'], 'cek_referensi' => true];
+    $jenis_jual = $this->m_master->getJenisPenjualan($filter);
+
+    $filter = ['hobi' => $post['hobby'], 'cek_referensi' => true];
+    $hobi = $this->m_master->getHobi($filter);
+
+    $filter_cdb = ['no_spk' => $spk->no_spk, 'id_dealer' => $spk->id_dealer];
+    $cek_cdb = $this->m_cdb->getCDB($filter_cdb);
+    if ($cek_cdb->num_rows() > 0) {
+      $cdb = $cek_cdb->row();
+      $upd_cdb = [
+        'jenis_beli'             => $jenis_beli->name,
+        'id_jenis_pembelian'     => $jenis_beli->id,
+        'agama'                  => $agama->id,
+        'pendidikan'             => $pendidikan->id,
+        'sedia_hub'              => $post['information'] == 'true' ? 'Ya' : 'Tidak',
+        'merk_sebelumnya'        => $post['motorcycle_brand_id'],
+        'jenis_sebelumnya'       => $post['motorcycle_type_id'],
+        'digunakan'              => $post['keperluan_pembelian_id'],
+        'menggunakan'            => $pgn->name,
+        'facebook'               => $post['facebook'],
+        'twitter'                => $post['twiter'],
+        'instagram'              => $post['instagram'],
+        'youtube'                => $post['youtube'],
+        'hobi'                   => $hobi->name,
+        'correspondence'         => $post['correspondence'],
+        'correspondence_address' => $post['correspondence_address'],
+        'jenis_penjualan_id'     => $post['jenis_penjualan_id'],
+        'cicilan'                => $post['cicilan'],
+      ];
+    } else {
+      $ins_cdb = [
+        'no_spk'                 => $spk->no_spk,
+        'jenis_beli'             => $jenis_beli->name,
+        'id_jenis_pembelian'     => $jenis_beli->id,
+        'agama'                  => $agama->id,
+        'pendidikan'             => $pendidikan->id,
+        'sedia_hub'              => $post['information'] == 'true' ? 'Ya' : 'Tidak',
+        'merk_sebelumnya'        => $post['motorcycle_brand_id'],
+        'jenis_sebelumnya'       => $post['motorcycle_type_id'],
+        'digunakan'              => $post['keperluan_pembelian_id'],
+        'menggunakan'            => $pgn->name,
+        'facebook'               => $post['facebook'],
+        'twitter'                => $post['twiter'],
+        'instagram'              => $post['instagram'],
+        'youtube'                => $post['youtube'],
+        'hobi'                   => $hobi->name,
+        'correspondence'         => $post['correspondence'],
+        'correspondence_address' => $post['correspondence_address'],
+        'jenis_penjualan_id'     => $post['jenis_penjualan_id'],
+        'cicilan'                => $post['cicilan'],
+      ];
+    }
+
+    $upd_spk = [
+      'no_spk'             => $spk->no_spk,
+      'no_ktp'             => $post['nik'],
+      'no_kk'              => $post['kk'],
+      'nama_konsumen'      => $post['name'],
+      'alamat'             => $post['address'],
+      'no_telp'            => $post['no_telp'],
+      'no_hp'              => $post['no_hp'],
+      'id_provinsi'        => $post['master_provinsi_id'],
+      'id_kabupaten'       => $post['master_kabupaten_kota_id'],
+      'id_kecamatan'       => $post['master_kecamatan_id'],
+      'id_kelurahan'       => $post['master_kelurahan_id'],
+      'status_rumah'    => $sts_rumah->name,
+      'status_rumah_id'    => $sts_rumah->id,
+      'email'              => $post['email'],
+      'pekerjaan'       => $post['pekerjaan_id'],
+      'pengeluaran_bulan'  => $post['pengeluaran_id'],
+      'id_finance_company'    => $post['leasing_id'] == '' ? NULL : $post['leasing_id'],
+      'dp_stor'            => $post['dp_awal'],
+      'dealer_code'        => $post['dealer_code'],
+    ];
+    // $tes = [
+    //   'ins_cdb' => isset($ins_cdb) ? $ins_cdb : NULL,
+    //   'upd_cdb' => isset($upd_cdb) ? $upd_cdb : NULL,
+    //   'upd_spk' => $upd_spk
+    // ];
+    // send_json($tes);
+    $this->db->trans_begin();
+    if (isset($ins_cdb)) {
+      $this->db->insert('tr_cdb', $ins_cdb);
+    }
+    if (isset($upd_cdb)) {
+      $cond = ['id_cdb' => $cdb->id_cdb];
+      $this->db->update('tr_cdb', $upd_cdb, $cond);
+    }
+    if (isset($upd_spk)) {
+      $cond = ['no_spk' => $spk->no_spk];
+      $this->db->update('tr_spk', $upd_spk, $cond);
+    }
+    if ($this->db->trans_status() === FALSE) {
+      $this->db->trans_rollback();
+      $msg = ['Terjadi kesalahan'];
+      send_json(msg_sc_error($msg));
+    } else {
+      $this->db->trans_commit();
+      $msg = ['Data has been updated'];
+      $response = msg_sc_success(NULL, $msg);
+      send_json($response);
+    }
+  }
+}

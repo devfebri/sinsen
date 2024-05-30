@@ -1,0 +1,169 @@
+<?php
+defined('BASEPATH') or exit('No direct script access allowed');
+
+class M_h23_nsc extends CI_Model
+{
+  public function __construct()
+  {
+    parent::__construct();
+    $this->load->database();
+    $this->load->model('m_h2_work_order', 'm_wo');
+  }
+
+  function getNSC($filter = null)
+  {
+    $id_dealer     = $this->m_admin->cari_dealer();
+    $where = "WHERE nsc.id_dealer='$id_dealer' ";
+
+    $nama_customer = "
+      CASE 
+        WHEN wo.id_work_order IS NULL THEN 
+          CASE WHEN ch23_so.id_customer IS NULL THEN so.nama_pembeli ELSE ch23_so.nama_customer END
+        ELSE ch23.nama_customer
+      END
+      ";
+    $id_customer = "CASE 
+      WHEN ch23.id_customer IS NOT NULL THEN ch23.id_customer
+      WHEN so.id_customer IS NOT NULL THEN so.id_customer
+      ELSE ''
+    END";
+    $id_tipe_kendaraan = "CASE 
+      WHEN ch23_so.id_tipe_kendaraan IS NOT NULL THEN ch23_so.id_tipe_kendaraan
+      WHEN ch23.id_tipe_kendaraan IS NOT NULL THEN ch23.id_tipe_kendaraan
+      ELSE ''
+    END";
+    $no_polisi = "CASE 
+      WHEN ch23.no_polisi IS NOT NULL THEN ch23.no_polisi
+      WHEN ch23_so.no_polisi IS NOT NULL THEN ch23_so.no_polisi
+      ELSE '-'
+    END";
+
+    $alamat = "CASE 
+      WHEN ch23_so.alamat IS NOT NULL THEN ch23_so.alamat
+      WHEN ch23.alamat IS NOT NULL THEN ch23.alamat
+      ELSE so.alamat_pembeli
+    END";
+
+    $no_hp = "CASE 
+      WHEN ch23_so.no_hp IS NOT NULL THEN ch23_so.no_hp
+      WHEN ch23.no_hp IS NOT NULL THEN ch23.no_hp
+      ELSE so.no_hp_pembeli
+    END";
+
+    $tipe_ahm = "CASE 
+      WHEN ch23_so.id_tipe_kendaraan IS NOT NULL THEN (SELECT tipe_ahm FROM ms_tipe_kendaraan WHERE id_tipe_kendaraan=ch23_so.id_tipe_kendaraan)
+      WHEN ch23.id_tipe_kendaraan IS NOT NULL THEN (SELECT tipe_ahm FROM ms_tipe_kendaraan WHERE id_tipe_kendaraan=ch23.id_tipe_kendaraan)
+      ELSE ''
+    END";
+
+    $waktu_nsc = "CONCAT(DATE_FORMAT(LEFT(nsc.created_at,10),'%d/%m/%Y'),' ',RIGHT(nsc.created_at,8))";
+
+    if ($filter != null) {
+      if (isset($filter['no_nsc'])) {
+        $where .= " AND nsc.no_nsc='{$filter['no_nsc']}' ";
+      }
+      if (isset($filter['nomor_so'])) {
+        $where .= " AND nsc.id_referensi='{$filter['nomor_so']}' ";
+      }
+      if (isset($filter['referensi'])) {
+        $where .= " AND nsc.referensi='{$filter['referensi']}' ";
+      }
+      if (isset($filter['id_work_order'])) {
+        $where .= " AND nsc.id_referensi='{$filter['id_work_order']}' ";
+      }
+      if (isset($filter['tgl_nsc'])) {
+        $where .= " AND nsc.tgl_nsc='{$filter['tgl_nsc']}' ";
+      }
+      if (isset($filter['tgl_transaksi'])) {
+        $where .= " AND nsc.tgl_nsc='{$filter['tgl_transaksi']}' ";
+      }
+      if (isset($filter['no_nsc_or_id_wo'])) {
+        $where .= " AND (nsc.id_referensi='{$filter['no_nsc_or_id_wo']}' OR nsc.no_nsc='{$filter['no_nsc_or_id_wo']}') ";
+      }
+      if (isset($filter['po_id'])) {
+        $where .= " AND po.po_id='{$filter['po_id']}' ";
+      }
+      if (isset($filter['level_satisfaction_null'])) {
+        $where .= " AND  NOT EXISTS(SELECT id_referensi FROM tr_h2_service_satisfaction AS tss WHERE id_referensi=nsc.id_referensi)";
+      }
+
+      if (isset($filter['search'])) {
+        if ($filter['search'] != '') {
+          $search = $filter['search'];
+          $where .= " AND ($nama_customer LIKE '%$search%'
+                            OR $id_customer LIKE '%$search%'
+                            OR $no_hp LIKE '%$search%'
+                            OR $tipe_ahm LIKE '%$search%'
+                            OR nsc.no_nsc LIKE '%$search%'
+                            OR nsc.id_referensi LIKE '%$search%'
+                            ) 
+            ";
+        }
+      }
+
+      if (isset($filter['order'])) {
+        if ($filter['order'] != '') {
+          $order = $filter['order'];
+          $order_column = $filter['order_column'];
+          $order_clm  = $order_column[$order[0]['column']];
+          $order_by   = $order[0]['dir'];
+          $where .= " ORDER BY $order_clm $order_by ";
+        } else {
+          $where .= " ORDER BY nsc.created_at DESC ";
+        }
+      } else {
+        $where .= " ORDER BY nsc.created_at DESC ";
+      }
+      if (isset($filter['limit'])) {
+        if ($filter['limit'] != '') {
+          $where .= ' ' . $filter['limit'];
+        }
+      }
+    }
+
+    $id_tipe_kendaraan = '0';
+    // $no_polisi = '0';
+    // $nama_customer = '0';
+    // $id_customer = '0';
+    $alamat = '0';
+    // $no_hp = '0';
+    // $tipe_ahm = '0';
+    $waktu_nsc = '0';
+    return $this->db->query("SELECT nsc.no_nsc,DATE_FORMAT(nsc.tgl_nsc,'%d/%m/%Y') AS tgl_nsc,referensi,nsc.id_referensi,
+      $nama_customer AS nama_customer,
+      $id_customer AS id_customer,
+      $id_tipe_kendaraan AS id_tipe_kendaraan,
+      $no_polisi AS no_polisi,
+      $alamat AS alamat,
+      $no_hp AS no_hp,
+      $tipe_ahm AS tipe_ahm,
+      $waktu_nsc AS waktu_nsc,
+      nsc.id_dealer,
+      DATE_FORMAT(so.tanggal_so,'%d/%m/%Y') AS tanggal_so,
+      CASE 
+        WHEN nsc.referensi='sales' THEN id_referensi
+        ELSE NULL
+      END AS nomor_so,
+      CASE 
+        WHEN nsc.referensi='work_order' THEN id_referensi
+        ELSE NULL
+      END AS id_work_order
+      FROM tr_h23_nsc nsc
+      LEFT JOIN tr_h2_wo_dealer wo ON wo.id_work_order=nsc.id_referensi
+      LEFT JOIN ms_customer_h23 ch23 ON ch23.id_customer=nsc.id_customer
+      LEFT JOIN ms_tipe_kendaraan tk ON tk.id_tipe_kendaraan=ch23.id_tipe_kendaraan
+      LEFT JOIN tr_h3_dealer_sales_order so ON so.nomor_so=nsc.id_referensi
+      LEFT JOIN ms_customer_h23 ch23_so ON ch23_so.id_customer_int=so.id_customer_int
+      $where
+      ");
+  }
+
+  function getSOH3($nomor_so)
+  {
+    return $this->db->query("SELECT so.*,dl.kode_dealer_md,dl.nama_dealer,so.nama_pembeli nama_lengkap
+      FROM tr_h3_dealer_sales_order so 
+      JOIN ms_dealer dl ON dl.id_dealer=so.id_dealer
+      -- LEFT JOIN ms_customer_h23 cus ON cus.id_customer_int=so.id_customer_int
+      WHERE so.nomor_so='$nomor_so'")->row();
+  }
+}

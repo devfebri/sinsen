@@ -1,0 +1,1 @@
+<button onclick='pilih_rekening_bank_print_receipt_customer(<?= $data ?>)' class="btn btn-xs btn-flat btn-success" type='button' data-dismiss='modal'><i class="fa fa-check"></i></button>

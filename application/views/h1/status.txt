@@ -1,0 +1,25 @@
+-- tr_scan_barcode --
+1 = input
+2 = masuk picking list dan belum tersimpan
+3 = masuk picking list dan sudah tersimpan dan terkonfirmasi
+4 = scan ke dealer alias ready dealer
+5 = terjual ke konsumen
+6 = retur konsumen ke dealer
+7 = retur dealer ke md
+
+
+!-------------------------------------------------------------------------------
+
+-- tr_picking_list --
+input 	= data nosin belum diambil sistem
+open 	= data nosin sudah diambil sistem
+proses 	= data picking list sudah dikonfirmasi sistem
+close 	= 
+
+-- tr_picking_list_view -- 
+konfirmasi 	==> ya (sudah di-checklist di menu konfrimasi PL)
+input 		= tersimpan di PL
+surat jalan = masuk ke menu surat jalan
+
+!-------------------------------------------------------------------------------
+	

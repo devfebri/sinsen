@@ -1,0 +1,1 @@
+<button <?=  ( $this->input->post('id_part') != null && in_array($id_part, $this->input->post('id_part')) ) ? 'disabled' : '' ?> onClick='return pilihPart(<?= $data ?>)' data-dismiss='modal' class="btn btn-xs btn-flat btn-success" type="button"><i class="fa fa-check"></button>

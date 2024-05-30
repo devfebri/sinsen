@@ -1,0 +1,1 @@
+<button onclick='return pilih_part_ahass_untuk_promo(<?= $data ?>)' data-dismiss='modal' class="btn btn-xs btn-flat btn-success" type="button"><i class="fa fa-check"></button>

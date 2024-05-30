@@ -1,0 +1,1 @@
+<button onclick='return open_view_reason("<?= $nomor_karton ?>","<?= $no_penerimaan_barang ?>","<?= $id_part ?>")' data-no_penerimaan_barang="<?= $no_penerimaan_barang ?>" data-id_part="<?= $id_part ?>" class="btn btn-xs btn-flat btn-info">View</button>

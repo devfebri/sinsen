@@ -1,0 +1,1 @@
+<a href="h3/h3_md_penagihan_pihak_kedua/detail?id=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>

@@ -1,0 +1,768 @@
+<?php
+
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+
+
+class Claim_sales_program extends CI_Controller {
+
+
+
+    var $tables =   "tr_do_dealer"; 
+
+    var $folder =   "h1";
+
+    var $page   =   "claim_sales_program";
+
+    var $pk     =   "no_do";
+
+    var $title  =   "Claim Sales Program";
+
+
+
+  public function __construct()
+
+  {   
+
+    parent::__construct();
+
+    
+
+    //===== Load Database =====
+
+    $this->load->database();
+
+    $this->load->helper('url');
+
+    //===== Load Model =====
+
+    $this->load->model('m_admin');    
+
+    //===== Load Library =====
+
+    $this->load->library('upload');
+
+
+
+    //---- cek session -------//    
+
+    $name = $this->session->userdata('nama');
+
+    $auth = $this->m_admin->user_auth($this->page,"select");    
+
+    $sess = $this->m_admin->sess_auth();            
+
+    if($name=="" OR $auth=='false' OR $sess=='false')
+
+    {
+
+      echo "<meta http-equiv='refresh' content='0; url=".base_url()."denied'>";
+
+    }
+
+
+
+
+
+  }
+
+  protected function template($data)
+
+  {
+
+    $name = $this->session->userdata('nama');
+
+    if($name=="")
+
+    {
+
+      echo "<meta http-equiv='refresh' content='0; url=".base_url()."panel'>";
+
+    }else{            
+
+      $data['id_menu'] = $this->m_admin->getMenu($this->page);
+
+      $data['group']  = $this->session->userdata("group");
+
+      $this->load->view('template/header',$data);
+
+      $this->load->view('template/aside');      
+
+      $this->load->view($this->folder."/".$this->page);   
+
+      $this->load->view('template/footer');
+
+    }
+
+  }
+
+
+
+  public function index()
+
+  {       
+
+    $data['isi']    = $this->page;    
+
+    $data['title']  = $this->title;                             
+
+    $data['set']    = "view";       
+
+    $this->template($data);     
+
+  }
+
+  public function add()
+
+  {       
+
+    $data['isi']    = $this->page;    
+
+    $data['title']  = $this->title;                             
+
+    $data['set']    = "insert";       
+
+    $this->template($data);     
+
+  }
+
+  public function view()
+
+  {       
+
+    $data['isi']    = $this->page;    
+
+    $data['title']  = $this->title;                             
+
+    $data['set']    = "detail";
+
+    $id_claim_sp   = $this->input->get('id');
+
+    $row  = $this->db->query("SELECT * FROM tr_claim_sales_program 
+
+          LEFT JOIN ms_dealer on tr_claim_sales_program.id_dealer=ms_dealer.id_dealer
+
+          LEFT JOIN tr_sales_program on tr_claim_sales_program.id_program_md=tr_sales_program.id_program_md
+
+          WHERE id_claim_sp='$id_claim_sp'");
+
+    if ($row->num_rows()>0) {
+
+      $data['row'] = $row;
+
+      $this->template($data); 
+
+    }       else{
+
+      echo "<meta http-equiv='refresh' content='0; url=".base_url()."h1/claim_sales_program'>";
+
+    }
+
+        
+
+  }
+
+
+
+  public function look()
+
+  {       
+
+    $data['isi']         = $this->page;   
+
+    $data['title']       = $this->title;                            
+
+    $data['set']         = "look";
+
+    $data['id_claim_sp'] = $this->input->get('id');
+
+    // $row   = $this->db->query("SELECT * FROM tr_claim_sales_program 
+
+    //      LEFT JOIN ms_dealer on tr_claim_sales_program.id_dealer=ms_dealer.id_dealer
+
+    //      LEFT JOIN tr_sales_program on tr_claim_sales_program.id_program_md=tr_sales_program.id_program_md
+
+    //      WHERE id_claim_sp='$id_claim_sp'");
+
+    // if ($row->num_rows()>0) {
+
+    //  $data['row'] = $row;
+
+    $this->template($data); 
+
+    // }        else{
+
+    //  echo "<meta http-equiv='refresh' content='0; url=".base_url()."h1/claim_sales_program'>";
+
+    // }
+
+        
+
+  }
+
+
+
+  public function history()
+
+  {       
+
+    $data['isi']    = $this->page;    
+
+    $data['title']  = $this->title;                             
+
+    $data['set']    = "history";        
+
+    $this->template($data);     
+
+  }
+
+
+
+  public function getDealer()
+
+  {
+
+    $id_program_md  = $this->input->post('id_program_md');
+
+    // $get_dealer  = $this->db->query("SELECT * FROM tr_sales_program_dealer 
+
+    //        inner join ms_dealer on tr_sales_program_dealer.id_dealer=ms_dealer.id_dealer
+
+    //        WHERE id_program_md='$id_program_md'");
+
+    $get_dealer   = $this->db->query("SELECT * FROM ms_dealer where h1=1 ORDER BY nama_dealer ASC");
+
+    if ($get_dealer->num_rows() >0) {
+
+        echo "<option value=''>- choose -</option>";
+
+      foreach ($get_dealer->result() as $key => $rs) {
+
+        echo "<option value='$rs->id_dealer'>$rs->nama_dealer</option>";
+
+      }
+
+    }
+
+  }
+
+
+
+  public function generate()
+
+  {
+
+    $id_program_md  = $this->input->post('id_program_md');
+
+    $id_dealer    = $this->input->post('id_dealer');
+
+    // $detail      = $this->db->query("SELECT *,tr_claim_dealer.status FROM tr_claim_dealer 
+
+    //            INNER jOIN tr_sales_order on tr_claim_dealer.id_sales_order=tr_sales_order.id_sales_order
+
+    //            INNER JOIN tr_spk on tr_sales_order.no_spk = tr_spk.no_spk
+
+    //  WHERE tr_claim_dealer.id_dealer='$id_dealer' AND tr_claim_dealer.id_program_md='$id_program_md' AND tr_claim_dealer.status='ajukan'");
+
+    $detail     = $this->db->query("SELECT *,tr_claim_dealer.status,tr_sales_order.no_mesin FROM tr_claim_dealer 
+
+                INNER jOIN tr_sales_order on tr_claim_dealer.id_sales_order=tr_sales_order.id_sales_order
+
+                INNER JOIN tr_spk on tr_sales_order.no_spk = tr_spk.no_spk
+
+      WHERE tr_claim_dealer.id_dealer='$id_dealer' AND tr_claim_dealer.id_program_md='$id_program_md' 
+      AND (tr_claim_dealer.status='ajukan' OR tr_claim_dealer.status='approved' OR tr_claim_dealer.status='rejected')
+      AND id_claim NOT IN (SELECT id_claim_dealer FROM tr_claim_sales_program_detail WHERE id_claim_dealer IS NOT NULL)
+       ");
+
+    if ($detail->num_rows()>0) {
+
+      
+
+        $data['detail'] = $detail;
+
+      $data['set']  = 'generate';
+
+      $this->load->view('h1/t_claim_sales_program_generate', $data);
+
+    }else{
+
+      echo 'kosong';
+
+    }
+
+  }
+
+
+
+  public function getSyarat()
+
+  {
+
+    $id_claim = $data['id_claim']     = $this->input->post('id_claim');
+
+    $detail     = $this->db->query("SELECT *,tr_sales_order.no_mesin FROM tr_claim_dealer 
+
+                INNER jOIN tr_sales_order on tr_claim_dealer.id_sales_order=tr_sales_order.id_sales_order
+
+                inner join tr_spk on tr_sales_order.no_spk = tr_spk.no_spk
+
+            inner join tr_scan_barcode on tr_sales_order.no_mesin = tr_scan_barcode.no_mesin
+
+            left join ms_tipe_kendaraan on tr_spk.id_tipe_kendaraan = ms_tipe_kendaraan.id_tipe_kendaraan
+
+            left join ms_warna on tr_spk.id_warna = ms_warna.id_warna
+
+      WHERE tr_claim_dealer.id_claim='$id_claim'");
+
+    if ($detail->num_rows()>0) {
+
+      $data['detail'] = $detail;
+
+      $data['set']  = 'showdatamodal';
+
+      if (isset($_POST['mode'])) {
+
+        $data['mode'] = 'edit';
+
+      }else{
+
+        $data['mode']='';
+
+      }
+
+      $this->load->view('h1/t_claim_sales_program_generate', $data);
+
+    }else{
+
+      echo 'kosong';
+
+    }
+
+  }
+
+
+
+  public function saveCekSyarat()
+
+  {
+
+    $r    = $this->input->post('row');
+
+    $cek  = 0;
+    for ($i=0; $i < $r ; $i++) { 
+
+      $dt_syarat[$i]['id'] = $this->input->post('id_'.$i);
+
+      $dt_syarat[$i]['checklist_reject_md'] = $this->input->post('cek_'.$i);
+
+      $alasan_reject = $dt_syarat[$i]['alasan_reject'] = $this->input->post('alasan_reject_'.$i);
+
+      $cek  += $this->input->post('cek_'.$i);
+    }    
+
+    if ($cek > 0) {
+
+      $data[0]['status']    = 'rejected';
+
+      if ($mode='edit') {
+
+        $dt_sp[0]['perlu_revisi'] = 1;
+      }
+    }else{
+
+      $data[0]['status']    = 'approved';
+
+      if ($mode='edit') {
+
+        $dt_sp[0]['perlu_revisi'] = 0;
+
+      }
+    }
+
+      $waktu                            = gmdate("y-m-d H:i:s", time()+60*60*7);
+      
+      $login_id                         = $this->session->userdata('id_user');
+      
+      $data[0]['id_claim']              = $this->input->post('id_claim');
+      
+      $data[0]['tgl_approve_reject_md'] = $waktu;
+      
+      $data[0]['updated_at']            = $waktu;
+      
+      $data[0]['updated_by']            = $login_id;
+
+      $id_claim = $dt_sp[0]['id_claim_dealer'] = $this->input->post('id_claim');
+
+     
+    $this->db->trans_begin();
+
+      $this->db->update_batch('tr_claim_dealer_syarat',$dt_syarat,'id');
+      $this->db->update_batch('tr_claim_dealer',$data,'id_claim');    
+
+      if ($mode=='edit') {
+
+        $this->db->update_batch('tr_claim_sales_program_detail',$dt_sp,'id_claim_dealer');
+
+      }
+
+    if ($this->db->trans_status() === FALSE)
+
+            {
+
+                    $this->db->trans_rollback();
+
+                    echo 0;
+
+            }
+
+        else
+
+            {
+
+                $this->db->trans_commit();
+
+               echo 1;  
+
+            }
+
+
+
+  }
+
+  public function setRevisi()
+
+  {
+
+    $data[0]['id']    = $this->input->post('id_claim');
+
+    $data[0]['perlu_revisi']    = $this->input->post('perlu_revisi');
+
+    $this->db->trans_begin();
+
+      $this->db->update_batch('tr_claim_sales_program_detail',$data,'id');
+
+    if ($this->db->trans_status() === FALSE)
+
+            {
+
+                    $this->db->trans_rollback();
+
+                    echo 0;
+
+            }
+
+        else
+
+            {
+
+                $this->db->trans_commit();
+
+               echo 1;  
+
+            }
+
+
+
+  }
+
+
+
+  public function cari_id(){    
+
+    $th         = date("Y");    
+
+    $bln          = date("m");    
+
+    $tgl_         = date("d");    
+
+    $tgl          = date("Y-m");    
+
+    $pr_num         = $this->db->query("SELECT * FROM tr_claim_sales_program WHERE LEFT(created_at,7)='$tgl' ORDER BY id_claim_sp DESC LIMIT 0,1");           
+
+       
+
+       if($pr_num->num_rows()>0){
+
+        $row  = $pr_num->row();   
+
+        $id = substr($row->id_claim_sp,7,4); 
+
+        $kode = $th.$bln.sprintf("%04d", $id+1);
+
+    }
+
+    else{
+
+      $kode = $th.$bln.'0001';
+
+    } 
+
+    return $kode;
+
+  }
+
+
+
+  public function save()
+
+
+
+  {   
+
+
+
+    $waktu      = gmdate("y-m-d H:i:s", time()+60*60*7);
+
+    $login_id   = $this->session->userdata('id_user');
+
+    $tabel      = 'tr_claim_sales_program';
+
+    $id_claim_sp  = $this->cari_id();
+
+    $cek      = $this->m_admin->getByID($tabel,'id_claim_sp',$id_claim_sp)->num_rows();
+
+
+
+    if($cek == 0){
+
+
+
+      $data[0]['id_claim_sp']   = $id_claim_sp;
+
+      $id_dealer = $data[0]['id_dealer']           = $this->input->post('id_dealer');  
+
+      $data[0]['id_program_md']       = $this->input->post('id_program_md');  
+
+      $data[0]['keterangan']      = $this->input->post('keterangan'); 
+
+      $data[0]['created_at']        = $waktu;   
+
+      $data[0]['created_by']        = $login_id;  
+
+
+
+      $id_claim            = $this->input->post('id_claim');
+
+      
+      $cek_ref=0;
+      foreach ($id_claim as $key => $val) {
+
+        $get_claim_dealer = $this->db->query("SELECT * FROM tr_claim_dealer
+
+                  JOIN tr_sales_order on tr_claim_dealer.id_sales_order=tr_sales_order.id_sales_order
+
+                  JOIN tr_spk on tr_sales_order.no_spk=tr_spk.no_spk
+
+                  WHERE id_claim='$val'
+
+          ");
+
+        
+
+        if ($get_claim_dealer->num_rows() > 0) {
+
+          
+
+          $claim = $get_claim_dealer->row();
+
+          $jenis_beli = $claim->jenis_beli;
+
+          $nilai_voucher_program=$this->db->query("SELECT *,(ahm_cash+md_cash+other_cash) as tot_cash,(ahm_kredit+md_kredit+other_kredit) as tot_kredit,tr_sales_program.id_program_md as pmd, (SELECT count(id_program_md)FROM tr_sales_program_gabungan WHERE tr_sales_program_gabungan.id_program_md_gabungan=pmd) as tot_gabungan FROM tr_sales_program inner JOIN tr_sales_program_tipe on tr_sales_program.id_program_md=tr_sales_program_tipe.id_program_md WHERE tr_sales_program_tipe.id_tipe_kendaraan='$claim->id_tipe_kendaraan' AND id_warna LIKE '%$claim->id_warna%' AND tr_sales_program_tipe.status<>'new' AND tr_sales_program.id_program_md='$claim->id_program_md' ");
+
+          if ($nilai_voucher_program->num_rows()>0) {
+
+            if ($jenis_beli=='Cash') {
+
+              $nilai = $nilai_voucher_program->row();
+
+              $nilai_voucher_program = $nilai->tot_cash;
+
+            }elseif ($jenis_beli=='Kredit') {
+
+              $nilai = $nilai_voucher_program->row();
+
+              $nilai_voucher_program = $nilai->tot_kredit;
+
+            }else{
+
+              $nilai_voucher_program='';
+
+            }
+
+          }else{
+
+            $nilai_voucher_program = '';
+
+          }
+
+
+
+          $nilai_vouch_gab=$this->db->query("SELECT *,(ahm_cash+md_cash+other_cash) as tot_cash,(ahm_kredit+md_kredit+other_kredit) as tot_kredit,tr_sales_program.id_program_md as pmd FROM tr_sales_program inner JOIN tr_sales_program_tipe on tr_sales_program.id_program_md=tr_sales_program_tipe.id_program_md WHERE tr_sales_program_tipe.id_tipe_kendaraan='$claim->id_tipe_kendaraan' AND id_warna LIKE '%$claim->id_warna%' AND tr_sales_program_tipe.status<>'new' AND tr_sales_program.id_program_md='$claim->program_gabungan' ");
+
+          if ($nilai_vouch_gab->num_rows()>0) {
+
+            if ($jenis_beli=='Cash') {
+
+              $nilai = $nilai_vouch_gab->row();
+
+              $nilai_vouch_gab = $nilai->tot_cash;
+
+            }elseif ($jenis_beli=='Kredit') {
+
+              $nilai = $nilai_vouch_gab->row();
+
+              $nilai_vouch_gab = $nilai->tot_kredit;
+
+            }else{
+
+              $nilai_vouch_gab='';
+
+            }
+
+          }else{
+
+            $nilai_vouch_gab = '';
+
+          }
+
+        }else{
+
+          $nilai_vouch_gab='';$nilai_voucher_program='';
+
+        }
+
+
+
+        // $nilai_potongan = $nilai_voucher_program+$nilai_vouch_gab;
+
+        $nilai_potongan = $nilai_voucher_program;
+
+        //$nilai_potongan = 0;//coba
+
+        if (isset($_POST['chk_revisi_'.$key])) {
+
+          $dt[$key]['perlu_revisi'] = 1;
+          $upd_claim_d[$key]['status_proposal'] = 'rejected_by_md';
+          $cek_ref++;
+        }else{
+          $upd_claim_d[$key]['status_proposal'] = 'completed_by_md';
+
+          $dt[$key]['perlu_revisi'] = 0;
+        }
+
+        $dt[$key]['nilai_potongan']=$nilai_potongan;
+
+        $dt[$key]['id_claim_dealer']=$val;
+
+        $dt[$key]['id_claim_sp']=$id_claim_sp;
+        $upd_claim_d[$key]['id_claim'] = $val;
+
+      }
+      if ($cek_ref>0) {
+        $ket_reject = count($id_claim==$cek_ref)?'seluruh':'sebagian';
+        $judul = "Reject Klaim Proposal By MD";
+        $pesan = "Proposal Klaim telah ditolak oleh MD untuk $ket_reject SO.  Silakan melihat Claim Report untuk detail klaim promosi.";
+      }else {
+        $judul = "Approved Klaim Proposal By MD";
+        $pesan = "Proposal Klaim telah disetujui oleh MD untuk seluruh SO.  Silakan melihat Claim Report untuk detail klaim promosi.";
+      }
+      $ktg_notif      = $this->db->get_where('ms_notifikasi_kategori',['kode_notif'=>'ntf_klaim_prop_md_d'])->row();
+      $notif = ['id_notif_kat'=> $ktg_notif->id_notif_kat,
+            'id_referensi' => '',
+            'judul'        => $judul,
+            'pesan'        => $pesan,
+            'link'         => $ktg_notif->link,
+            'status'       => 'baru',
+            'id_dealer'    => $id_dealer,
+            'created_at'   => $waktu,
+            'created_by'   => $login_id
+           ];
+
+      //var_dump($dt);  
+
+
+
+      $this->db->trans_begin();
+      $this->db->insert_batch('tr_claim_sales_program_detail',$dt);
+      $this->db->insert_batch('tr_claim_sales_program',$data);
+      $this->db->update_batch('tr_claim_dealer',$upd_claim_d,'id_claim');
+      $this->db->insert('tr_notifikasi',$notif);      
+
+      if ($this->db->trans_status() === FALSE)
+
+              {
+
+                      $this->db->trans_rollback();
+
+                      $_SESSION['pesan']  = "Something went wrong";
+
+
+
+      $_SESSION['tipe']   = "danger";
+
+
+
+      echo "<meta http-equiv='refresh' content='0; url=".base_url()."h1/claim_sales_program'>";
+
+              }
+
+          else
+
+              {
+
+                  $this->db->trans_commit();
+
+                 $_SESSION['pesan']   = "Data has been saved successfully";
+
+
+
+      $_SESSION['tipe']   = "success";
+
+
+
+      echo "<meta http-equiv='refresh' content='0; url=".base_url()."h1/claim_sales_program'>"; 
+
+              }
+
+
+
+    }else{
+
+
+
+      $_SESSION['pesan']  = "Duplicate entry for primary key";
+
+
+
+      $_SESSION['tipe']   = "danger";
+
+
+
+      echo "<script>history.go(-1)</script>";
+
+
+
+    }
+
+
+
+  }
+
+
+
+  public function verifikasi()
+
+  {       
+
+    $data['isi']    = $this->page;    
+
+    $data['title']  = $this->title;                             
+
+    $data['set']    = "verifikasi";       
+
+    $this->template($data);     
+
+  }
+
+}

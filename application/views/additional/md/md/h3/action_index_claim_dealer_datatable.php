@@ -1,0 +1,1 @@
+<a href="h3/h3_md_claim_dealer/detail?id_claim_dealer=<?= $id_claim_dealer ?>" class="btn btn-xs btn-flat btn-info">View</a>

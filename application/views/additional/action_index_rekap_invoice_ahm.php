@@ -1,0 +1,1 @@
+<a href="h3/h3_md_rekap_invoice_ahm/detail?id_rekap_invoice=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>

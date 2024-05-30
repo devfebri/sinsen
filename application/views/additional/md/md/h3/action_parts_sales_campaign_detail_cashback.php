@@ -1,0 +1,1 @@
+<button <?= (count($this->input->post('selected_id_parts')) > 0 and in_array($id_part, $this->input->post('selected_id_parts'))) ? 'disabled' : '' ?> class="btn btn-xs btn-flat btn-success" type='button' onclick='return pilih_parts_sales_campaign_detail_cashback(<?= $data ?>)' data-dismiss='modal'><i class="fa fa-check"></i></button>

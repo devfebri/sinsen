@@ -1,0 +1,1 @@
+<a href="h3/h3_md_penerimaan_po_vendor/detail?id_penerimaan_po_vendor=<?= $id_penerimaan_po_vendor ?>" class="btn btn-xs btn-flat btn-info">View</a>

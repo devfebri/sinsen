@@ -1,0 +1,1 @@
+<a href="h3/h3_md_ms_diskon_oli_kpb/detail?id=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>

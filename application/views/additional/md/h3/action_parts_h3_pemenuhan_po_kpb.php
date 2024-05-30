@@ -1,0 +1,1 @@
+<button class="btn btn-xs btn-flat btn-success" type='button' onclick='return pilihPartH3("<?= $id_detail ?>", "<?= $id_part ?>")' data-dismiss='modal'><i class="fa fa-check"></i></button>

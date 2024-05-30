@@ -1,0 +1,1 @@
+<a href="h3/h3_md_serah_terima_sj/detail?id=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>

@@ -1,0 +1,1 @@
+<button class="btn btn-xs btn-flat btn-success" type='button' onclick='return pilih_dealer_online_stok_dealer_offline_template_stok(<?= $data ?>)' data-dismiss='modal'><i class="fa fa-check"></i></button>

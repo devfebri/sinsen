@@ -1,0 +1,1 @@
+<a href="h3/h3_md_ms_sim_part/detail?id_sim_part=<?= $id_sim_part ?>" class="btn btn-xs btn-flat btn-info">View</a>

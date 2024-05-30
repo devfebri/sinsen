@@ -1,0 +1,1 @@
+<a href="h3/h3_md_mutasi_gudang/detail?id_mutasi_gudang=<?= $id_mutasi_gudang ?>" class="btn btn-xs btn-flat btn-info">View</a>

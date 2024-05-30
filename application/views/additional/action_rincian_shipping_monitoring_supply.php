@@ -1,0 +1,1 @@
+<a onclick='return open_rincian_shipping_monitoring_supply("<?= $id_do_sales_order ?>")'><?= $tanggal_shipping ?></a>

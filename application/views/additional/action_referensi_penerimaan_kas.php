@@ -1,0 +1,1 @@
+<button onclick='pilih_referensi_penerimaan_kas(<?= $data ?>)' class="btn btn-xs btn-flat btn-success" type='button' data-dismiss='modal'><i class="fa fa-check"></i></button>

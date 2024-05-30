@@ -1,0 +1,1 @@
+<a href="h3/h3_md_fdo/detail?invoice_number=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>

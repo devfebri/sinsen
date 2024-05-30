@@ -1,0 +1,1 @@
+<a href="dealer/h3_dealer_picking_slip/detail?id=<?= $id ?>" class='btn btn-flat btn-xs btn-info'>View</a>

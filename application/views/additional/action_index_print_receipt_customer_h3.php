@@ -1,0 +1,2 @@
+<a href="dealer/h3_dealer_print_receipt_customer/create_kwitansi?id=<?= $id ?>" class="btn btn-xs btn-flat btn-success">Create Kwitansi</a>
+<a href="dealer/h3_dealer_print_receipt_customer/detail?id=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>

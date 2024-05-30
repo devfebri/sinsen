@@ -1,0 +1,1 @@
+<a href="<?= base_url("dealer/h3_dealer_event_h23/detail?id_event={$id}") ?>" class="btn btn-xs btn-flat btn-info">View</a>

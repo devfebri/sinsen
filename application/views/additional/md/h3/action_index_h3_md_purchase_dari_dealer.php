@@ -1,0 +1,1 @@
+<a href="h3/h3_md_monitor_po_dari_dealer/detail?id=<?= $id ?>"><?= $id ?></a>

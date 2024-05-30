@@ -1,0 +1,1 @@
+<a href="dealer/h3_dealer_penerimaan_kas/detail?id=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>

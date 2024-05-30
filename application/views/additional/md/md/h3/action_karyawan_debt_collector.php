@@ -1,0 +1,1 @@
+<button <?= $selected == 1 ? 'disabled' : '' ?> onclick='return pilih_karyawan_debt_collector(<?= $data ?>)' class="btn btn-flat btn-xs btn-success" data-dismiss='modal' type='button'><i class="fa fa-check"></i></button>

@@ -1,0 +1,1 @@
+<a href="h3/h3_md_ms_customer/detail?id_dealer=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>

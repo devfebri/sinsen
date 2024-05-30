@@ -1,0 +1,1 @@
+<a href="h3/h3_md_back_order/detail?id_sales_order=<?= $id_sales_order ?>" class="btn btn-xs btn-info btn-flat">View</a>

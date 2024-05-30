@@ -1,0 +1,2 @@
+<a href="h3/h3_md_diskon_part_tertentu/detail?id=<?= $id ?>" class="btn btn-xs btn-flat btn-info">View</a>
+<a onclick='return confirm("Apakah anda yakin ingin menghapus data ini?")' href="h3/h3_md_diskon_part_tertentu/delete?id=<?= $id ?>" class="btn btn-xs btn-flat btn-danger" style='margin-top: 5px;'>Hapus</a>

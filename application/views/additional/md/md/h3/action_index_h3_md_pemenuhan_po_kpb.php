@@ -1,0 +1,1 @@
+<a href="h3/h3_md_pemenuhan_po_kpb/detail?id_po_kpb=<?= $id_po_kpb ?>" class="btn btn-xs btn-flat btn-info">View</a>
